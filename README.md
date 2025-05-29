@@ -7,9 +7,13 @@ If you've taken a break from a book or series and can't remember who a minor cha
 -   Semantic search for characters by name (only looking up to where the user has read)
 -   Brief descriptions of characters
 -   Recent events involving characters
+-   Response in a way that matches the story e.g. in the way that the main character or narrator would describe them (would this involve fine-tuning?)
 
 ## Pipeline
 
-1. **Text Extraction**: Extract text from the pdf.
-2. **Text Chunking**: Split the text into manageable overlapping chunks.
-3. **Embedding**: Create embeddings for each chunk.
+1. Query
+2. Embed query
+3. Chunk the corups and get top-k similar chunks
+4. Retrieve context + query
+5. Feed in to LLM
+6. Generate answer
