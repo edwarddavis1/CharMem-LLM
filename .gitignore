@@ -10,4 +10,8 @@ wheels/
 .venv
 
 # Data files
-.pdf
+*.pdf
+chroma/
+
+# Personal log 
+project_log/
