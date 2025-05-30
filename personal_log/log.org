@@ -118,4 +118,27 @@ We first met Hermione Granger on page 77 [correct].
 
 Recent important events involving Hermione Granger include her being present with Ron on page 124, standing up on page 129, and being mentioned on page 182.
 
-*** Chunk size 2000
+
+* [2025-5-30 Fri]
+
+** Progress: Looking at CUDA
+
+Colab has been working well, however, there are time limits when using GPUs on the free tier.
+
+Therefore, I've moved over to Windows and set up CUDA to use my local GPU (Nvidia GTX 960, 4GB Mem).
+
+This is able to run small models (~1B param), but it is too small to run the Mistral one that I was using before on colab (~7B param).
+
+I am able to run "microsoft/Phi-4-mini-instruct" locally (~4B param) - but it is very slow to run (~6min to instantiate, ~3min to tell me about Hermione).
+
+** Short term strategy
+Stop trying to use larger LLMs - most of the room for improvement comes from the retrieval part of the code. All I need the LLM to do is summarise the retrieval - which hopefully doesn't require a huge model.
+
+** How would I actually deploy this?
+
+| Stack Layer   | Tech                   | Role                             |
+| ------------- | ---------------------- | -------------------------------- |
+| Frontend      | HTML/JS/Typescript     | User input & result display      |
+| API Backend   | FastAPI (Python)       | Wraps LangChain + Chroma logic   |
+| Data Pipeline | LangChain              | Handles PDF → vector → LLM query |
+| Hosting       | GitHub Pages + Railway | Free deployment                  |
