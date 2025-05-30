@@ -5,13 +5,11 @@ build/
 dist/
 wheels/
 *.egg-info
+*.Zone.Identifier
 
 # Virtual environments
 .venv
 
 # Data files
-*.pdf
 chroma/
 
-# Personal log 
-project_log/

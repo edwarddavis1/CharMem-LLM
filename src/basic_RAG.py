@@ -4,7 +4,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
-import os
+import os 
 import shutil
 
 # %%
@@ -14,11 +14,6 @@ DATA_PATH = "../data/books"
 book = "Harry-Potter-and-the-Philosophers-Stone"
 loader = PyPDFLoader(DATA_PATH + "/" + book + ".pdf")
 pages = loader.load()
-
-# # Each "page" is a LangChain Document with .page_content
-# for i, page in enumerate(pages[:3]):
-#     print(f"\n--- Page {i + 1} ---\n")
-#     print(page.page_content[:500])
 
 # %%
 # CHUNK THE TEXT
@@ -32,8 +27,6 @@ splitter = RecursiveCharacterTextSplitter(
 )
 chunks = splitter.split_documents(pages)
 
-page = chunks[50]
-print(page.page_content)
 # %%
 # USE VECTOR DATABASE TO EMBED EACH OF THE CHUNKS
 
@@ -46,12 +39,12 @@ embedding_function = HuggingFaceEmbeddings(
 #  specified embedding model
 CHROMA_PATH = "chroma"
 
-# # Remove previous database if making a new one
-# if os.path.exists(CHROMA_PATH):
-#     shutil.rmtree(CHROMA_PATH)
+# Remove previous database if making a new one
+if os.path.exists(CHROMA_PATH):
+    shutil.rmtree(CHROMA_PATH)
 
-# # Create vector database
-# db = Chroma.from_documents(chunks, embedding_function, persist_directory=CHROMA_PATH)
+# Create vector database
+db = Chroma.from_documents(chunks, embedding_function, persist_directory=CHROMA_PATH)
 
 
 # %%

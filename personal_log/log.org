@@ -1,0 +1,121 @@
+* [2025-5-28 Wed]
+Project start.
+
+Want a project which gives me experience building a product that uses an LLM and RAG.
+
+The idea: utilise semantic search to provide a character summary about specific characters in a book, only including text up to the point where the user has read.
+
+** Retrieval-Augmented Generation (RAG)
+
+*** High Level
+High-level idea: when queried, the LLM retreives some relevant content before answering.
+Here, "relevant content" could mean looking up on the internet, or looking through a pre-determined database. In the case of this project, that will be locating information in the pdf regarding the queried character. 
+
+**** Benefits of RAG
+- Reduces hallucination: given that the model has data to first query, if the question cannot reliably be answered based on this data, it allows the model to say "I don't know".
+- Answers are more up to date.
+
+**** Active research directions
+- How to make a good retriever of relevant information.
+- How to best generate an answer given the retrieved data.
+
+*** More detail 
+
+The overall pipeline looks like the following.
+
+1. Query
+2. Embed query
+3. Chunk the corups and get top-k similar chunks
+4. Retrieve context + query
+5. Feed in to LLM
+6. Generate answer
+
+
+
+** Potential project issues
+- Hallucination. For example, if I ask it about a character we havne't met yet, the LLM should be able to recognise this, and not return information about the character beyond where the user has read up to.
+    - Solution: use RAG. Make sure that the retriever cannot take information after the point where the user has read up to and only uses information from this book/pdf.
+
+- Chunk size: if too small, there won't be enough context with the answer. If too large, then the information is not localised enough.
+
+
+
+* [2025-5-29 Thu]
+
+* Getting the initial results
+
+** Prompt engineering
+
+I wanted the output to come in three parts, given a query about a specific character.
+
+1. A summary of the character.
+2. Where we first met the character (inc page number + how they were introduced)
+3. Some recent events.
+
+I'm getting this using a prompt template
+
+```{python}
+PROMPT_TEMPLATE = """
+You are a helpful book assistant....
+
+Context: {retrieval}
+
+Question: Who is {query}? Where did we first meet ....
+
+Answer in the following style
+
+Example 1:
+...
+
+
+Answer: 
+"""
+
+prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
+prompt = prompt_template.format(context=retrieval, query=query_text)
+```
+
+** Language model
+
+Now using google colab, allowing me to run the code using a GPU.
+
+- Started with a pretty small model - "tiiuae/falcon-rw-1b", results weren't amazing.
+- Switched to a bigger model - "mistralai/Mistral-7B-Instruct-v0.3" - results are better.
+
+Currently hyperparameters like temperature and top_p have been kept to defaults.
+
+** Chunking
+
+One initial problem was the output incorrectly placing where we first met a character. This was due to the chunk where we meet said character not being included in the retrieval. 
+
+Simply increasing the number of chunks returned by similarity search was too computationally taxing. 
+
+By reducing the chunk size to around 200 (instead of 1000), this first meet result was improved. However, a tradeoff could be the quality of character summary, as the model will only see a small amount of text for each chunk.
+
+** Example output: Hermione Granger
+
+- Correct first meet location.
+- Accurate summary, although a little shallow
+- First recent event is correct, the second is incorrect.
+
+```
+A summary of the character Hermione Granger is she is a character who is knowledgeable and independent, as seen on page 77 when she introduces herself to Harry.
+
+We first met Hermione Granger on page 77, this was when she introduced herself to Harry Potter.
+
+Recent important events involving Hermione Granger include her attempt to deal with a troll on her own on page 129, and her not speaking to Ron or Harry since the day Harry’s broomstick arrived on page 124.
+```
+
+Not bad, but lots of room for improvement.
+
+*** Reduce chunk size to 100
+
+The output is hilariously vauge.
+
+Hermione Granger is a character in the novel. 
+
+We first met Hermione Granger on page 77 [correct]. 
+
+Recent important events involving Hermione Granger include her being present with Ron on page 124, standing up on page 129, and being mentioned on page 182.
+
+*** Chunk size 2000
