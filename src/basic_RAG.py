@@ -39,12 +39,15 @@ embedding_function = HuggingFaceEmbeddings(
 #  specified embedding model
 CHROMA_PATH = "chroma"
 
-# Remove previous database if making a new one
-if os.path.exists(CHROMA_PATH):
-    shutil.rmtree(CHROMA_PATH)
+# %%
+# CREATE VECTOR DATABASE
 
-# Create vector database
-db = Chroma.from_documents(chunks, embedding_function, persist_directory=CHROMA_PATH)
+# # Remove previous database if making a new one
+# if os.path.exists(CHROMA_PATH):
+#     shutil.rmtree(CHROMA_PATH)
+
+# # Create vector database
+# db = Chroma.from_documents(chunks, embedding_function, persist_directory=CHROMA_PATH)
 
 
 # %%
@@ -124,15 +127,14 @@ login(HF_TOKEN)
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
-# model_id = "mistralai/Mistral-7B-Instruct-v0.3"
-# model_id = "microsoft/Phi-4-mini-instruct"
-# model_id = "LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct"
-model_id = "tiiuae/falcon-rw-1b"
+model_id = "microsoft/Phi-4-mini-instruct"  # (7.16 GB)
+# model_id = "LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct"  # (8.96 GB)
+# model_id = "tiiuae/falcon-rw-1b"  # (4.88 GB)
 
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 
 model = AutoModelForCausalLM.from_pretrained(
-    model_id, device_map="auto", torch_dtype=torch.float16, trust_remote_code=True
+    model_id, device_map="cuda", torch_dtype=torch.float16, trust_remote_code=True
 )
 # %%
 inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
@@ -146,4 +148,4 @@ outputs = model.generate(
 )
 response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 # %%
-print(response[len(prompt) :])
+print(response)

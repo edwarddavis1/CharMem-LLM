@@ -142,3 +142,65 @@ Stop trying to use larger LLMs - most of the room for improvement comes from the
 | API Backend   | FastAPI (Python)       | Wraps LangChain + Chroma logic   |
 | Data Pipeline | LangChain              | Handles PDF → vector → LLM query |
 | Hosting       | GitHub Pages + Railway | Free deployment                  |
+
+- This might end up being a distrction - but I can just keep writing python code, and if I decide I want to delopy it as an MVP, then I can use this plan without altering my proof of concept code. 
+
+** Examples with local LLMs 
+
+Note that each of these examples are based on a pretty bad retrieval model at the moment. 
+
+There may well be an issue of the model referring to its internal knowledge, instead of what information is given to them in the retrieval. This could cause accidental spoilers...
+
+*** tiiuae/falcon-rw-1b (4.88 GB)
+/Time to instantiate/:  5s
+/Time to generate/:     33s
+
+Character: Who is Hermione Granger?
+
+Answer:
+She is a student at Hogwarts School of Witchcraft and Wizardry. **She is the daughter of Albus Dumbledore and Molly Weasley.** Hermione is a Gryffindor, and is currently a first year student at Hogwarts. She has a reputation as being very smart, and is popular with her friends.
+
+Verdict:
+- Not very accurate hahaha
+- Does not follow the formatting instructions in my prompt template
+- Does not reference page numbers
+
+
+*** LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct (8.96 GB)
+/Time to instantiate/:  35s
+/Time to generate/:     3m 44s
+
+Answer:
+Hermione Granger is a prominent and intelligent young witch who plays a crucial role in the Harry Potter series. She is known for her exceptional academic abilities, loyalty to her friends, and a strong sense of justice, often acting against authority when necessary to protect others. Hermione is fiercely independent, quick-witted, and possesses extensive knowledge of magical lore and spells. She is part of the Gryffindor house at Hogwarts School of Witchcraft and Wizardry alongside Harry Potter and Ron Weasley.
+
+**We first meet Hermione Granger on page XX**, where she is introduced as Hermione Granger, alongside Ron Weasley and Harry Potter, in a crowded classroom setting after they have inadvertently caused a commotion by attempting to retrieve a stolen book from the Restricted Section. They are recognized by Hagrid, who quickly identifies them as students of Hogwarts, leading to Hermione sharing her extensive magical knowledge, particularly regarding centaurs, which marks her introduction to the community.
+
+Recently, Hermione Granger has been involved in various significant events: **On page 182**, she encounters a centaur named Ronan at the school, leading to an interesting exchange about astronomy and magical creatures. Additionally, Hermione faces disciplinary action from Professor McGonagall for her actions in confronting a mountain troll alone, highlighting her willingness to defy rules when necessary for the greater good.
+
+Verdict:
+- Much more significant responses
+- Follows the formatting instructions
+- /Can/ reference page numbers, but in the second paragraph it overfits to the prompt - literally returning "page XX". Perhaps this could be fixed with better prompt engineering
+
+
+*** microsoft/Phi-4-mini-instruct (7.16 GB)
+/Time to instantiate/:  38s
+/Time to generate/:     2m 53s
+
+Answer: Hermione Granger is a character from the Harry Potter series, known for her intelligence, bravery, and loyalty. She is a dedicated student at Hogwarts School of Witchcraft and Wizardry, where she excels academically and is a member of the Gryffindor house. Hermione is also known for her strong sense of justice and her willingness to stand up for what she believes in, often putting herself in danger to help others.
+
+**We first meet Hermione Granger on page 130**, where she is introduced as a student at Hogwarts. She is standing alone by the door, waiting for Harry, Ron, and Neville Longbottom, who have just escaped from the trap set by the Fat Lady, the portrait of the Gryffindor House's mascot. Hermione is described as being alone, standing by the door, waiting for them, and she is portrayed as a quiet and reserved character at this point in the story.
+
+Recently, **on page 182**, Hermione Granger is seen interacting with Ronan, a centaur, who introduces himself as a student at Hogwarts. Ronan asks Hermione if she learns much at the school, to which she responds timidly that she does a bit. This interaction shows Hermione's willingness to engage in conversation with others and her continued dedication to her studies.
+
+
+Verdict:
+- Gave full answers
+- Used the correct format
+- Coud reference pages
+
+** Result
+
+The Microsoft Phi4 model gave the best answers (given the poor retrieval context) and ran quicker than the other model of a similar size. Due to the terrible quality of the tiiuae 1B model; ignoring formatting instructions, being very breif and suffering from hallucination, I think it would be best to focus on the Phi4 model for now. 
+
+While this can run locally fine, having to wait 2-3 minutes per run is annoying - so perhaps I'll do most of the LLM experimentation on google colab, and do the rest of the development using VS code (e.g. improving retrieval performance, front end etc..)
