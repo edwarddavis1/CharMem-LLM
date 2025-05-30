@@ -7,6 +7,14 @@ wheels/
 *.egg-info
 *.Zone.Identifier
 
+# environment files
+.env
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
 # Virtual environments
 .venv
 

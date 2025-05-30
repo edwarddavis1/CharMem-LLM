@@ -4,7 +4,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
-import os 
+import os
 import shutil
 
 # %%
@@ -62,9 +62,13 @@ results = db.similarity_search_with_relevance_scores(query_text, k=3)
 #     print("Unable to find good results")
 
 # View the retrieval
-retrieval = "\n\n---\n\n".join([page.page_content for page, _ in results])
-print(retrieval)
-
+# retrieval = "\n\n---\n\n".join([page.page_content for page, _ in results])
+retrieval = "\n\n---\n\n".join(
+    [
+        f"[Page {page.metadata.get('page', 'N/A')}]\n{page.page_content}"
+        for page, _ in results
+    ]
+)
 # %%
 # CREATE RESPONSE
 PROMPT_TEMPLATE = """
@@ -80,7 +84,7 @@ It is important that your answers are formatted like in the following examples.
 Example 1:
 Character: Harry Potter
 Answer:
-Harry Potter is...
+Harry Potter is... [What sets them apart from other characters, their role in the story, etc.]
 
 We first meet Harry Potter on page XX, where he was XX...
 
@@ -104,12 +108,30 @@ prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
 prompt = prompt_template.format(context=retrieval, query=query_text)
 
 # %%
-from langchain.llms import LlamaCpp
+from huggingface_hub import login
 
-llm = LlamaCpp(
-    model_path="mistral-7b-instruct.Q4_K_M.gguf",
-    temperature=0.7,
-    max_tokens=512,
-    n_ctx=2048,
-    verbose=True,
+login("your_huggingface_token_here")
+
+# %%
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import torch
+
+model_id = "mistralai/Mistral-7B-v0.1"
+
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model = AutoModelForCausalLM.from_pretrained(
+    model_id, device_map="cuda", torch_dtype=torch.float16, trust_remote_code=True
 )
+# %%
+inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
+outputs = model.generate(
+    **inputs,
+    max_new_tokens=512,
+    do_sample=True,
+    temperature=0.7,
+    top_p=0.9,
+    top_k=50,
+)
+response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+# %%
+print(response)
