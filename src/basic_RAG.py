@@ -68,12 +68,34 @@ print(retrieval)
 # %%
 # CREATE RESPONSE
 PROMPT_TEMPLATE = """
-You are a helpful book assistant. Given the following excerpts from a novel, answer the user’s question as clearly and concisely as possible, using only the provided text.
+You are a helpful book assistant. Given the following excerpts from a novel, provide the user information about a specified character as clearly and concisely as possible, using only the provided text.
+
+You will provide an answer in three distinct paragraphs to provide information about the following:
+1. A summary of the character.
+2. Where we first met the character (including the page number and how they were introduced)
+3. Some recent events involving the character (recent, i.e. higher page numbers).
+
+It is important that your answers are formatted like in the following examples.
+
+Example 1:
+Character: Harry Potter
+Answer:
+Harry Potter is...
+
+We first meet Harry Potter on page XX, where he was XX...
+
+Recently, Harry Potter has...
+
+Example 2:
+Character: Orsen Kovacs
+[In the case where there is no relevant context given about this character]
+Answer:
+We have not met a character named Orsen Kovacs.
 
 Context:
 {context}
 
-Question: {query}
+Character: {query}
 
 Answer:"""
 
