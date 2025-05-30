@@ -108,17 +108,26 @@ prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
 prompt = prompt_template.format(context=retrieval, query=query_text)
 
 # %%
-from huggingface_hub import login
+# LOGIN TO HUGGING FACE
+# So we can access HF models
 
-login("your_huggingface_token_here")
+from huggingface_hub import login
+from dotenv import load_dotenv
+
+load_dotenv()
+HF_TOKEN = os.getenv("HF_TOKEN")
+login(HF_TOKEN)
 
 # %%
+# LOAD LLM
+
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
-model_id = "mistralai/Mistral-7B-v0.1"
-
+# model_id = "mistralai/Mistral-7B-Instruct-v0.3"
+model_id = "google/medgemma-4b-it"
 tokenizer = AutoTokenizer.from_pretrained(model_id)
+
 model = AutoModelForCausalLM.from_pretrained(
     model_id, device_map="cuda", torch_dtype=torch.float16, trust_remote_code=True
 )
