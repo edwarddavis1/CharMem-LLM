@@ -204,3 +204,38 @@ Verdict:
 The Microsoft Phi4 model gave the best answers (given the poor retrieval context) and ran quicker than the other model of a similar size. Due to the terrible quality of the tiiuae 1B model; ignoring formatting instructions, being very breif and suffering from hallucination, I think it would be best to focus on the Phi4 model for now. 
 
 While this can run locally fine, having to wait 2-3 minutes per run is annoying - so perhaps I'll do most of the LLM experimentation on google colab, and do the rest of the development using VS code (e.g. improving retrieval performance, front end etc..)
+
+
+* [2025-5-31 Sat]
+
+** First course of action to improve retrieval
+
+*** Promot engineering
+- First attempt at prompt engineering might be a bit random and bloated. Could try a different technique using ### Role, ### Constraints.
+
+*** Standard LLM params
+- **Temperature** is used to control the randomness of the model's output. Lower values (e.g., 0.1) make the output more deterministic and focused, while higher values (e.g., 0.8) increase creativity and diversity in responses.
+- **Top_p (nucleus sampling)** limits the model to considering only the most probable tokens whose cumulative probability exceeds the threshold p. This helps balance diversity and coherence.
+
+
+* [2025-6-1 Sun]
+
+** Key Issue: LLM Generation Latency 
+
+So far I've shown that it's possible to make a minimum viable product using a LLM of around 4B parameters. However, running locally, there is a generation latency on the scale of minutes - which is clearly not good enough for an MVP.
+
+*** Possible latency solutions
+
+**** Backend 
+- FastAPI: Web framework for building API apps with Python.
+    > Easy to learn
+    > Fast development
+    > High performance
+
+- AWS: 
+
+**** LLM 
+- While Phi-4 seemed okay, it could even be worth testing out Phi-2.
+
+**** Vector database
+- FAISS is generally faster than Chroma (although Chroma is better-integrated with LangChain).
