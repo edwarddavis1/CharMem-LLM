@@ -6,6 +6,9 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
 import os
 import shutil
+from dotenv import load_dotenv
+
+from huggingface_hub import InferenceClient
 
 # %%
 # LOAD THE DATA
@@ -111,41 +114,23 @@ prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
 prompt = prompt_template.format(context=retrieval, query=query_text)
 
 # %%
-# LOGIN TO HUGGING FACE
-# So we can access HF models
-
-from huggingface_hub import login
-from dotenv import load_dotenv
-
-load_dotenv()
-HF_TOKEN = os.getenv("HF_TOKEN")
-login(HF_TOKEN)
-
-# %%
 # LOAD LLM
 
-from transformers import AutoTokenizer, AutoModelForCausalLM
-import torch
+load_dotenv()
+HF_API_TOKEN = os.getenv("HUGGINGFACE_API_TOKEN")
 
-model_id = "microsoft/Phi-4-mini-instruct"  # (7.16 GB)
-# model_id = "LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct"  # (8.96 GB)
-# model_id = "tiiuae/falcon-rw-1b"  # (4.88 GB)
+client = InferenceClient(api_key=HF_API_TOKEN)
 
-tokenizer = AutoTokenizer.from_pretrained(model_id)
-
-model = AutoModelForCausalLM.from_pretrained(
-    model_id, device_map="cuda", torch_dtype=torch.float16, trust_remote_code=True
-)
 # %%
-inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
-outputs = model.generate(
-    **inputs,
-    max_new_tokens=512,
-    do_sample=True,
+MODEL_ID = os.getenv("MODEL_ID")
+response = client.chat.completions.create(
+    model=MODEL_ID,
+    messages=[{"role": "user", "content": prompt}],
+    # max_tokens=1000,
     temperature=0.7,
-    top_p=0.9,
-    top_k=50,
 )
-response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+bot_response = response.choices[0].message.content
+print(bot_response)
+
 # %%
-print(response)

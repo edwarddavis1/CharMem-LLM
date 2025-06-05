@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{{ app_name }}</title>
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', path='/css/styles.css') }}"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <div class="chat-container">
+            <div class="chat-header">
+                <h1>CharMem-LLM</h1>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <div class="message bot">
+                    <div class="message-content">
+                        <p>
+                            Hello! I'm CharMem powered by {{ model_name }}. How
+                            can I help you today?
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-input">
+                <textarea
+                    id="user-input"
+                    placeholder="Type your message here..."
+                    rows="2"
+                ></textarea>
+                <button id="send-btn">Send</button>
+            </div>
+        </div>
+        <!-- <p>Powered by {{ model_name }}</p> -->
+
+        <script src="{{ url_for('static', path='/js/chat.js') }}"></script>
+    </body>
+</html>
