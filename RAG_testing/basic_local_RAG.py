@@ -122,7 +122,7 @@ HF_TOKEN = os.getenv("HF_TOKEN")
 login(HF_TOKEN)
 
 # %%
-# LOAD LLM
+# LOAD LOCAL LLM
 
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
