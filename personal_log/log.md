@@ -315,3 +315,24 @@ The embedding of all of the chunks of the pdf takes time. On the Harry Potter bo
         model=EMBEDDING_MODEL_ID, huggingfacehub_api_token=HF_API_TOKEN
     )
     ```
+
+-   Because this speedup was so successful, there is no need to implement the embeding function caching idea.
+
+-   As the VDB computation with Chroma is not too slow (~10s), I'll stop trying to speed this up for now. Partly due to having to configure FAISS to use GPU, which I'll just have in my mind as a lower-priority job.
+
+### Overall computation time of RAG for Harry Potter book 1
+
+(Ignoring computations that round to 0.0s)
+
+-   **Load the PDF**: 2.1s
+-   **Compute the VDB (Chroma)**: 10.3s
+-   **Semantic search (k=3)**: 0.1s
+-   **LLM response (Qwen 235B)**: 13.8s
+
+-   **_Total_**: 26.3s
+
+Using a smaller model
+
+-   **LLM response (Phi-4 14.7B)**: 3.0s
+
+-   **_Total_**: 15.5s

@@ -1,5 +1,5 @@
 # %%
-from langchain.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEndpointEmbeddings
@@ -44,7 +44,6 @@ embedding_function = HuggingFaceEndpointEmbeddings(
     model=EMBEDDING_MODEL_ID, huggingfacehub_api_token=HF_API_TOKEN
 )
 
-
 # Create vector database by embedding each of the chunks using the
 #  specified embedding model
 CHROMA_PATH = "chroma"
@@ -56,12 +55,11 @@ if os.path.exists(CHROMA_PATH):
 # Create vector database
 db = Chroma.from_documents(chunks, embedding_function, persist_directory=CHROMA_PATH)
 
+# Load the database
+db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
 
 # %%
 # RAG
-
-# Load the database
-db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
 
 # Search the database
 query_text = "Who is Hermione Granger?"
@@ -120,14 +118,12 @@ prompt = prompt_template.format(context=retrieval, query=query_text)
 # %%
 # LOAD LLM
 
-
 client = InferenceClient(api_key=HF_API_TOKEN)
 
-# %%
 response = client.chat.completions.create(
     model=MODEL_ID,
     messages=[{"role": "user", "content": prompt}],
-    max_tokens=1000,
+    # max_tokens=1000,
     temperature=0.7,
 )
 
