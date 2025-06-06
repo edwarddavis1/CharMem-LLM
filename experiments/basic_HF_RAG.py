@@ -4,23 +4,29 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEndpointEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
-import os
 import shutil
 from dotenv import load_dotenv
-
 from huggingface_hub import InferenceClient
+import os
+import sys
+from pathlib import Path
+
+# Change to project root directory
+project_root = Path(__file__).parent.parent
+os.chdir(project_root)
+sys.path.insert(0, str(project_root))
+
+from backend.config import MODEL_ID, EMBEDDING_MODEL_ID
 
 # %%
 # Load environment variables
 load_dotenv()
 
 HF_API_TOKEN = os.getenv("HUGGINGFACE_API_TOKEN")
-EMBEDDING_MODEL_ID = os.getenv("EMBEDDING_MODEL_ID")
-MODEL_ID = os.getenv("MODEL_ID")
 # %%
 # LOAD THE DATA
 
-DATA_PATH = "../data/books"
+DATA_PATH = "backend/data/books"
 book = "Harry-Potter-and-the-Philosophers-Stone"
 loader = PyPDFLoader(DATA_PATH + "/" + book + ".pdf")
 pages = loader.load()
@@ -62,8 +68,8 @@ db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function
 # RAG
 
 # Search the database
-query_text = "Who is Hermione Granger?"
-results = db.similarity_search_with_relevance_scores(query_text, k=3)
+query_text = "Hermione Granger"
+results = db.similarity_search_with_relevance_scores(query_text, k=50)
 
 # # Filter
 # if len(results) == 0 or results[0][1] < 0.5:
@@ -77,6 +83,7 @@ retrieval = "\n\n---\n\n".join(
         for page, _ in results
     ]
 )
+# retrieval = ""
 # %%
 # CREATE RESPONSE
 PROMPT_TEMPLATE = """
@@ -86,6 +93,8 @@ You will provide an answer in three distinct paragraphs to provide information a
 1. A summary of the character.
 2. Where we first met the character (including the page number and how they were introduced)
 3. Some recent events involving the character (recent, i.e. higher page numbers).
+
+If there is not enough evidence that we have met this character, you must say that we have not met the character.
 
 It is important that your answers are formatted like in the following examples.
 
