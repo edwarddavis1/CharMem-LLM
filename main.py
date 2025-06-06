@@ -187,7 +187,10 @@ async def upload_pdf(pdf: UploadFile = File(...)):
             "message": f"PDF '{pdf.filename}' uploaded successfully",
             "pages": len(pdf_reader.pages),
             "text_preview": (
-                text_content[:200] + "..." if len(text_content) > 200 else text_content
+                # text_content
+                text_content[:200] + "..."
+                if len(text_content) > 200
+                else text_content
             ),
         }
 

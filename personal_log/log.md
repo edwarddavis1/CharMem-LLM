@@ -255,6 +255,24 @@ But importantly, huggingface inference client has solved my LLM latency problem,
 
 The biggest gaps to the minimum viable product is the frontend. This needs the following to be an MVP.
 
-1. Allow for the user to upload a pdf
-2. Allow the reader to scroll through the pdf (to read it)
-3. Taking note of the page that the user has reached, run the character query.
+1. [x] Allow for the user to upload a pdf
+2. [ ] Allow the reader to scroll through the pdf (to read it)
+3. [ ] Take note of the page that the user has reached.
+4. [ ] Perform RAG on the uploaded data
+
+## Uploading the PDF
+
+-   Add an event listener for the button in Javascript.
+-   When the `pdf-upload` input HTML element is clicked, the file browser opens
+
+    HTML: `<input type="file" id="pdf-upload" accept=".pdf" style="display: none;"/>`
+
+    Javascript: `pdfUpload.click();`
+
+-   When the file is selected run `uploadPDF(file)`. The first part of this function uses a `FormData` object to package the selected file, allowing it to be sent via a POST HTTP request to `/upload-pdf`.
+
+-   Then need to add an endpoint at `/upload-pdf` in the FastAPI app. The python function `upload_pdf(pdf)` reads the PDF using `PyPDF2` and sends a response back to Javascript with either an error (file type error, or unknown error) or with success. On a successful interaction, the return object is (currently) a logging `message`, `pages` count and `text_preview`.
+
+-   The return from the python function is then collected by the uploadPDF js function: `const result = await response.json()`. The remainder of this function then handles error or success messages.
+
+## Adding RAG to chatbot

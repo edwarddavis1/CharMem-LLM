@@ -207,7 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (response.ok) {
                 appendBotMessage(
-                    `PDF "${file.name}" uploaded successfully! The document contains ${result.pages} pages and is now available for questions.`
+                    `PDF "${file.name}" uploaded successfully! The document contains ${result.pages} pages.`
                 );
             } else {
                 appendBotMessage(
