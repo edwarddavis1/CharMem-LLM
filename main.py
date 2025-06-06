@@ -16,6 +16,7 @@ import logging
 from pathlib import Path
 from huggingface_hub import InferenceClient
 from backend.RAG import EmbeddedPDF, file_to_langchain_doc
+from backend.config import MODEL_ID
 
 # Configure logging
 logging.basicConfig(
@@ -23,8 +24,17 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Load environment variables
 load_dotenv()
+HF_API_TOKEN = os.getenv("HUGGINGFACE_API_TOKEN")
+
+# Initialize the InferenceClient for the new Inference Providers system
+client = InferenceClient(api_key=HF_API_TOKEN) if HF_API_TOKEN else None
+
+if not HF_API_TOKEN:
+    logger.error("HUGGINGFACE_API_TOKEN not found in environment variables!")
+else:
+    logger.info(f"Initialized InferenceClient with model: {MODEL_ID}")
+
 
 app = FastAPI(title="ChatBot App with Hugging Face LLM")
 
@@ -36,18 +46,6 @@ app.mount("/static", StaticFiles(directory=Path("app/static")), name="static")
 
 # Templates
 templates = Jinja2Templates(directory=Path("app/templates"))
-
-# Hugging Face Inference Providers configuration
-HF_API_TOKEN = os.getenv("HUGGINGFACE_API_TOKEN")
-MODEL_ID = os.getenv("MODEL_ID")
-
-# Initialize the InferenceClient for the new Inference Providers system
-client = InferenceClient(api_key=HF_API_TOKEN) if HF_API_TOKEN else None
-
-if not HF_API_TOKEN:
-    logger.error("HUGGINGFACE_API_TOKEN not found in environment variables!")
-else:
-    logger.info(f"Initialized InferenceClient with model: {MODEL_ID}")
 
 
 class ConnectionManager:

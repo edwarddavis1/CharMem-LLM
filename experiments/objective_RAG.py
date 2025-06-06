@@ -23,3 +23,5 @@ pdf_embedder.embed_pdf(pages)
 # %%
 response = pdf_embedder.generate_character_analysis("Hermione Granger")
 print(response)
+
+# %%

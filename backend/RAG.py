@@ -9,6 +9,11 @@ import PyPDF2
 import io
 import os
 from typing import Optional
+from dotenv import load_dotenv
+from backend.config import EMBEDDING_MODEL_ID, MODEL_ID
+
+load_dotenv()
+HF_API_TOKEN = os.getenv("HUGGINGFACE_API_TOKEN")
 
 
 async def file_to_langchain_doc(pdf: UploadFile) -> list[Document]:
@@ -80,8 +85,8 @@ class EmbeddedPDF:
     def _initialize_embedding_function(self):
         """Initialize the embedding function."""
         self.embedding_function = HuggingFaceEndpointEmbeddings(
-            model=os.getenv("EMBEDDING_MODEL_ID"),
-            huggingfacehub_api_token=os.getenv("HUGGINGFACE_API_TOKEN"),
+            model=EMBEDDING_MODEL_ID,
+            huggingfacehub_api_token=HF_API_TOKEN,
         )
 
     def embed_pdf(self, pages: list[Document]) -> dict:
@@ -146,9 +151,9 @@ class EmbeddedPDF:
         prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
         prompt = prompt_template.format(context=context, query=character_name)
 
-        client = InferenceClient(api_key=os.getenv("HUGGINGFACE_API_TOKEN"))
+        client = InferenceClient(api_key=HF_API_TOKEN)
         response = client.chat.completions.create(
-            model=os.getenv("MODEL_ID"),
+            model=MODEL_ID,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
         )
