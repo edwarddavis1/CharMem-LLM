@@ -279,8 +279,39 @@ The biggest gaps to the minimum viable product is the frontend. This needs the f
 
 In the above implementation of the file upload, python simply reads the file and returns a success message without actually doing anything with the data. To perform RAG on the PDF we need the following:
 
--   [ ] Save the uploaded file to a database
 -   [ ] Embed the file in chunks (if the file has not been seen before)
 -   [ ] Perform a semantic search on the chunks
 -   [ ] Engineer a prompt to the model including the retrieval as context.
 -   [ ] Call the hugging face client with the prompt
+
+### Challenge: speeding up document embedding
+
+The embedding of all of the chunks of the pdf takes time. On the Harry Potter book 1 example the chunking of the pdf is very quick. However, loading the embedding function (all-MimiLM-L6-v2) takes 1m30s! Once this is loaded, the VB computation is around 10s - not the quickest but definitely a manageable delay.
+
+#### Speedup options
+
+-   Use a different VB management system - e.g. Faiss
+-   Use a lighter embedding model
+-   Use the HF inference client or something similar to offload compute
+-   Cache the embedding function - i.e. start loading as the page loads. This cuts down the percieved loading time and removes the loading time altogether when doing a second request.
+
+#### Speedup Progress
+
+**Embedding function instantiation**: 1m30s -> 0.0s
+
+-   Use the hugging face inference client, just like what was done with the LLM computation.
+-   Old:
+
+    ```python
+    embedding_function = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
+    ```
+
+-   New
+
+    ```python
+    embedding_function = HuggingFaceEndpointEmbeddings(
+        model=EMBEDDING_MODEL_ID, huggingfacehub_api_token=HF_API_TOKEN
+    )
+    ```

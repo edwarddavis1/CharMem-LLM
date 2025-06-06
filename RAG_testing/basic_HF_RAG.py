@@ -2,7 +2,7 @@
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEndpointEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
 import os
 import shutil
@@ -10,6 +10,13 @@ from dotenv import load_dotenv
 
 from huggingface_hub import InferenceClient
 
+# %%
+# Load environment variables
+load_dotenv()
+
+HF_API_TOKEN = os.getenv("HUGGINGFACE_API_TOKEN")
+EMBEDDING_MODEL_ID = os.getenv("EMBEDDING_MODEL_ID")
+MODEL_ID = os.getenv("MODEL_ID")
 # %%
 # LOAD THE DATA
 
@@ -33,24 +40,21 @@ chunks = splitter.split_documents(pages)
 # %%
 # USE VECTOR DATABASE TO EMBED EACH OF THE CHUNKS
 
-# Free model from hugging face
-embedding_function = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2"
+embedding_function = HuggingFaceEndpointEmbeddings(
+    model=EMBEDDING_MODEL_ID, huggingfacehub_api_token=HF_API_TOKEN
 )
+
 
 # Create vector database by embedding each of the chunks using the
 #  specified embedding model
 CHROMA_PATH = "chroma"
 
-# %%
-# CREATE VECTOR DATABASE
+# Remove previous database if making a new one
+if os.path.exists(CHROMA_PATH):
+    shutil.rmtree(CHROMA_PATH)
 
-# # Remove previous database if making a new one
-# if os.path.exists(CHROMA_PATH):
-#     shutil.rmtree(CHROMA_PATH)
-
-# # Create vector database
-# db = Chroma.from_documents(chunks, embedding_function, persist_directory=CHROMA_PATH)
+# Create vector database
+db = Chroma.from_documents(chunks, embedding_function, persist_directory=CHROMA_PATH)
 
 
 # %%
@@ -116,13 +120,10 @@ prompt = prompt_template.format(context=retrieval, query=query_text)
 # %%
 # LOAD LLM
 
-load_dotenv()
-HF_API_TOKEN = os.getenv("HUGGINGFACE_API_TOKEN")
 
 client = InferenceClient(api_key=HF_API_TOKEN)
 
 # %%
-MODEL_ID = os.getenv("MODEL_ID")
 response = client.chat.completions.create(
     model=MODEL_ID,
     messages=[{"role": "user", "content": prompt}],
