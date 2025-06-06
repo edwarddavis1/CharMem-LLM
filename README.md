@@ -7,13 +7,14 @@ If you've taken a break from a book or series and can't remember who a minor cha
 -   Semantic search for characters by name (only looking up to where the user has read)
 -   Brief descriptions of characters
 -   Recent events involving characters
--   Response in a way that matches the story e.g. in the way that the main character or narrator would describe them (would this involve fine-tuning?)
+-   Response in a way that matches the story e.g. in the way that the main character or narrator would describe them
 
-## Pipeline
+## Currently Implemented
 
-1. Query
-2. Embed query
-3. Chunk the corups and get top-k similar chunks
-4. Retrieve context + query
-5. Feed in to LLM
-6. Generate answer
+-   **PDF Upload**: Users can upload PDF books through a web interface
+-   **RAG-powered Character Search**: Semantic search through uploaded PDFs using vector embeddings
+-   **Real-time Chat Interface**: WebSocket-based chat for instant responses
+-   **LLM Integration**: Uses Hugging Face Inference API with Qwen 235B model
+-   **Character Analysis**: Provides character summaries, first meeting details, and recent events with page references
+-   **Vector Database**: Chroma DB for document chunking and similarity search (k=50 chunks)
+-   **Responsive UI**: Modern dark-themed chat interface with typing indicators
