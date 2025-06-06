@@ -126,11 +126,12 @@ MODEL_ID = os.getenv("MODEL_ID")
 response = client.chat.completions.create(
     model=MODEL_ID,
     messages=[{"role": "user", "content": prompt}],
-    # max_tokens=1000,
+    max_tokens=1000,
     temperature=0.7,
 )
 
 bot_response = response.choices[0].message.content
+
 print(bot_response)
 
 # %%

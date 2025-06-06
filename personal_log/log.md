@@ -243,6 +243,18 @@ So far I've shown that it's possible to make a minimum viable product using a LL
 
 # [2025-6-5 Thu]
 
+## Key Issue Solved: Hugging face inference client
+
 Spent a while away from this project to learn about FastAPI and adjacent tools. Here is a summary of [how I created a huggingface chatbot webpage](making_the_chatbot.md).
 
 But importantly, huggingface inference client has solved my LLM latency problem, and it also allows us to use the most powerful models, e.g. deepseek (>650B param!).
+
+# [2025-6-6 Fri]
+
+## Getting to an MVP
+
+The biggest gaps to the minimum viable product is the frontend. This needs the following to be an MVP.
+
+1. Allow for the user to upload a pdf
+2. Allow the reader to scroll through the pdf (to read it)
+3. Taking note of the page that the user has reached, run the character query.

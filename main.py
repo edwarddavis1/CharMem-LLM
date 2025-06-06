@@ -1,5 +1,13 @@
 import os
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi import (
+    FastAPI,
+    Request,
+    WebSocket,
+    WebSocketDisconnect,
+    HTTPException,
+    UploadFile,
+    File,
+)
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
@@ -7,6 +15,8 @@ from dotenv import load_dotenv
 import logging
 from pathlib import Path
 from huggingface_hub import InferenceClient
+import PyPDF2
+import io
 
 # Configure logging
 logging.basicConfig(
@@ -58,7 +68,7 @@ manager = ConnectionManager()
 
 async def query_huggingface(conversation_history):
     """
-    Query the NEW Hugging Face Inference Providers API with the given message
+    Query the Hugging Face Inference Providers API with the given message
     Uses the modern InferenceClient with chat completion format
     """
     try:
@@ -147,6 +157,42 @@ async def websocket_endpoint(websocket: WebSocket):
         except:
             pass
         manager.disconnect(websocket)
+
+
+# Handle uploading a PDF
+@app.post("/upload-pdf")
+async def upload_pdf(pdf: UploadFile = File(...)):
+
+    # Validate file type
+    if not pdf.filename or not pdf.filename.endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are allowed")
+
+    try:
+        # Read the PDF content
+        content = await pdf.read()
+
+        # Extract text from PDF
+        pdf_reader = PyPDF2.PdfReader(io.BytesIO(content))
+        text_content = ""
+
+        for page in pdf_reader.pages:
+            text_content += page.extract_text() + "\n"
+
+        # Store the PDF content (you can save this to a database or file)
+        # For now, we'll just print it
+        print(f"PDF '{pdf.filename}' uploaded with {len(pdf_reader.pages)} pages")
+        print(f"Extracted text preview: {text_content[:200]}...")
+
+        return {
+            "message": f"PDF '{pdf.filename}' uploaded successfully",
+            "pages": len(pdf_reader.pages),
+            "text_preview": (
+                text_content[:200] + "..." if len(text_content) > 200 else text_content
+            ),
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing PDF: {str(e)}")
 
 
 if __name__ == "__main__":

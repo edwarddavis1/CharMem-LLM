@@ -1,89 +1,96 @@
+/**
+ * CharMem Chat Application
+ * Handles WebSocket communication, message display, and PDF uploads
+ */
+
 document.addEventListener("DOMContentLoaded", () => {
+    // ========================================
+    // DOM ELEMENTS
+    // ========================================
     const chatMessages = document.getElementById("chat-messages");
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
+    const uploadBtn = document.getElementById("upload-btn");
+    const pdfUpload = document.getElementById("pdf-upload");
 
+    // ========================================
+    // GLOBAL STATE
+    // ========================================
     let socket = null;
     let isConnected = false;
 
-    // Connect to WebSocket
+    // ========================================
+    // WEBSOCKET FUNCTIONS
+    // ========================================
+
+    // Establishes WebSocket connection with automatic reconnection
     function connectWebSocket() {
-        // Create WebSocket connection
-        // (The ws: protocol triggers a handshake with the server)
-        // (If HTTPS, use wss: for secure WebSocket)
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
         socket = new WebSocket(`${protocol}//${window.location.host}/ws`);
 
-        // Connection opened
         socket.addEventListener("open", (event) => {
             isConnected = true;
             console.log("Connected to WebSocket server");
         });
 
-        // Listen for messages
         socket.addEventListener("message", (event) => {
             const message = event.data;
-
-            // Remove typing indicator if it exists
-            const typingIndicator = document.querySelector(
-                ".typing-indicator-container"
-            );
-            if (typingIndicator) {
-                chatMessages.removeChild(typingIndicator);
-            }
-
-            // If the message is the "thinking" message, show typing indicator
-            if (message === "Bot is thinking...") {
-                appendTypingIndicator();
-            } else {
-                // Otherwise, display the actual message
-                appendBotMessage(message);
-
-                // Scroll to the bottom
-                scrollToBottom();
-            }
+            handleIncomingMessage(message);
         });
 
-        // Connection closed
         socket.addEventListener("close", (event) => {
             isConnected = false;
             console.log("Disconnected from WebSocket server");
 
-            // Try to reconnect after a delay
-            setTimeout(() => {
-                connectWebSocket();
-            }, 3000);
+            // Auto-reconnect after 3 seconds
+            setTimeout(connectWebSocket, 3000);
         });
 
-        // Connection error
         socket.addEventListener("error", (error) => {
             console.error("WebSocket error:", error);
         });
     }
 
-    // Connect to WebSocket
-    connectWebSocket();
+    // Handles incoming WebSocket messages
+    // @param {string} message - The received message
+    function handleIncomingMessage(message) {
+        // Remove existing typing indicator
+        const typingIndicator = document.querySelector(
+            ".typing-indicator-container"
+        );
+        if (typingIndicator) {
+            chatMessages.removeChild(typingIndicator);
+        }
 
-    // Send message function
+        if (message === "Bot is thinking...") {
+            appendTypingIndicator();
+        } else {
+            appendBotMessage(message);
+            scrollToBottom();
+        }
+    }
+    // ========================================
+    // MESSAGE FUNCTIONS
+    // ========================================
+
+    /**
+     * Sends a message through WebSocket
+     */
     function sendMessage() {
         const message = userInput.value.trim();
 
         if (message && isConnected) {
-            // Display user message
             appendUserMessage(message);
-
-            // Clear input
             userInput.value = "";
-
-            // Send message to server
             socket.send(message);
-
-            // Scroll to the bottom
             scrollToBottom();
         }
     }
 
-    // Append user message to chat
+    /**
+     * Appends a user message to the chat
+     * @param {string} message - The message text
+     */
     function appendUserMessage(message) {
         const messageElement = document.createElement("div");
         messageElement.classList.add("message", "user");
@@ -95,7 +102,10 @@ document.addEventListener("DOMContentLoaded", () => {
         chatMessages.appendChild(messageElement);
     }
 
-    // Append bot message to chat
+    /**
+     * Appends a bot message to the chat
+     * @param {string} message - The message text
+     */
     function appendBotMessage(message) {
         const messageElement = document.createElement("div");
         messageElement.classList.add("message", "bot");
@@ -107,7 +117,9 @@ document.addEventListener("DOMContentLoaded", () => {
         chatMessages.appendChild(messageElement);
     }
 
-    // Append typing indicator
+    /**
+     * Displays a typing indicator in the chat
+     */
     function appendTypingIndicator() {
         const indicatorElement = document.createElement("div");
         indicatorElement.classList.add(
@@ -128,38 +140,120 @@ document.addEventListener("DOMContentLoaded", () => {
         scrollToBottom();
     }
 
-    // Format message (convert URLs to links, etc.)
+    // ========================================
+    // UTILITY FUNCTIONS
+    // ========================================
+
+    /**
+     * Formats message text with HTML links and line breaks
+     * @param {string} message - The raw message text
+     * @returns {string} - The formatted HTML string
+     */
     function formatMessage(message) {
-        // Escape HTML
         let escapedMessage = escapeHTML(message);
 
-        // Convert URLs to links
+        // Convert URLs to clickable links
         escapedMessage = escapedMessage.replace(
             /(https?:\/\/[^\s]+)/g,
             '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
         );
 
-        // Convert line breaks to <br>
+        // Convert line breaks to HTML breaks
         escapedMessage = escapedMessage.replace(/\n/g, "<br>");
 
         return escapedMessage;
     }
 
-    // Escape HTML to prevent XSS
+    /**
+     * Escapes HTML characters to prevent XSS attacks
+     * @param {string} text - The text to escape
+     * @returns {string} - The escaped text
+     */
     function escapeHTML(text) {
         const div = document.createElement("div");
         div.textContent = text;
         return div.innerHTML;
     }
 
-    // Scroll to the bottom of the chat
+    /**
+     * Scrolls the chat to the bottom to show latest messages
+     */
     function scrollToBottom() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    // Event listeners
+    // ========================================
+    // PDF UPLOAD FUNCTIONS
+    // ========================================
+
+    /**
+     * Handles PDF file upload to the server
+     * @param {File} file - The PDF file to upload
+     */
+    async function uploadPDF(file) {
+        appendBotMessage(`Uploading PDF "${file.name}"...`);
+        scrollToBottom();
+
+        const formData = new FormData();
+        formData.append("pdf", file);
+
+        try {
+            const response = await fetch("/upload-pdf", {
+                method: "POST",
+                body: formData,
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                appendBotMessage(
+                    `PDF "${file.name}" uploaded successfully! The document contains ${result.pages} pages and is now available for questions.`
+                );
+            } else {
+                appendBotMessage(
+                    `Error uploading PDF: ${
+                        result.detail || "Unable to make HTTP request"
+                    }`
+                );
+            }
+        } catch (error) {
+            appendBotMessage(`Error uploading PDF: ${error.message}`);
+        }
+
+        // Clear the file input and scroll to bottom
+        pdfUpload.value = "";
+        scrollToBottom();
+    }
+
+    // ========================================
+    // INITIALIZATION & EVENT LISTENERS
+    // ========================================
+
+    /**
+     * Initialize WebSocket connection
+     */
+    connectWebSocket();
+
+    /**
+     * Set up event listeners for user interactions
+     */
+    // Send button click
     sendBtn.addEventListener("click", sendMessage);
 
+    // PDF upload button click
+    uploadBtn.addEventListener("click", () => {
+        pdfUpload.click();
+    });
+
+    // File selection handler
+    pdfUpload.addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            uploadPDF(file);
+        }
+    });
+
+    // Enter key to send message (Shift+Enter for new line)
     userInput.addEventListener("keydown", (event) => {
         if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault();
@@ -167,6 +261,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Focus input field
+    // Focus the input field when page loads
     userInput.focus();
 });
