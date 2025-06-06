@@ -34,9 +34,15 @@
                     placeholder="Type your message here..."
                     rows="2"
                 ></textarea>
+                <input 
+                    type="file" 
+                    id="pdf-upload" 
+                    accept=".pdf" 
+                    style="display: none;"
+                />
+                <button id="upload-btn" type="button">Upload PDF</button>
                 <button id="send-btn">Send</button>
             </div>
-        </div>
         <!-- <p>Powered by {{ model_name }}</p> -->
 
         <script src="{{ url_for('static', path='/js/chat.js') }}"></script>

@@ -20,4 +20,5 @@ wheels/
 
 # Data files
 chroma/
+faiss/
 

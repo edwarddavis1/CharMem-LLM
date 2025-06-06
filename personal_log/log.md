@@ -243,6 +243,96 @@ So far I've shown that it's possible to make a minimum viable product using a LL
 
 # [2025-6-5 Thu]
 
+## Key Issue Solved: Hugging face inference client
+
 Spent a while away from this project to learn about FastAPI and adjacent tools. Here is a summary of [how I created a huggingface chatbot webpage](making_the_chatbot.md).
 
 But importantly, huggingface inference client has solved my LLM latency problem, and it also allows us to use the most powerful models, e.g. deepseek (>650B param!).
+
+# [2025-6-6 Fri]
+
+## Getting to an MVP
+
+The biggest gaps to the minimum viable product is the frontend. This needs the following to be an MVP.
+
+1. [x] Allow for the user to upload a pdf
+2. [ ] Allow the reader to scroll through the pdf (to read it)
+3. [ ] Take note of the page that the user has reached.
+4. [ ] Perform RAG on the uploaded data
+
+## Uploading the PDF
+
+-   Add an event listener for the button in Javascript.
+-   When the `pdf-upload` input HTML element is clicked, the file browser opens
+
+    HTML: `<input type="file" id="pdf-upload" accept=".pdf" style="display: none;"/>`
+
+    Javascript: `pdfUpload.click();`
+
+-   When the file is selected run `uploadPDF(file)`. The first part of this function uses a `FormData` object to package the selected file, allowing it to be sent via a POST HTTP request to `/upload-pdf`.
+
+-   Then need to add an endpoint at `/upload-pdf` in the FastAPI app. The python function `upload_pdf(pdf)` reads the PDF using `PyPDF2` and sends a response back to Javascript with either an error (file type error, or unknown error) or with success. On a successful interaction, the return object is (currently) a logging `message`, `pages` count and `text_preview`.
+
+-   The return from the python function is then collected by the uploadPDF js function: `const result = await response.json()`. The remainder of this function then handles error or success messages.
+
+## Adding RAG to the chatbot
+
+In the above implementation of the file upload, python simply reads the file and returns a success message without actually doing anything with the data. To perform RAG on the PDF we need the following:
+
+-   [ ] Embed the file in chunks (if the file has not been seen before)
+-   [ ] Perform a semantic search on the chunks
+-   [ ] Engineer a prompt to the model including the retrieval as context.
+-   [ ] Call the hugging face client with the prompt
+
+### Challenge: speeding up document embedding
+
+The embedding of all of the chunks of the pdf takes time. On the Harry Potter book 1 example the chunking of the pdf is very quick. However, loading the embedding function (all-MimiLM-L6-v2) takes 1m30s! Once this is loaded, the VB computation is around 10s - not the quickest but definitely a manageable delay.
+
+#### Speedup options
+
+-   Use a different VB management system - e.g. Faiss
+-   Use a lighter embedding model
+-   Use the HF inference client or something similar to offload compute
+-   Cache the embedding function - i.e. start loading as the page loads. This cuts down the percieved loading time and removes the loading time altogether when doing a second request.
+
+#### Speedup Progress
+
+**Embedding function instantiation**: 1m30s -> 0.0s
+
+-   Use the hugging face inference client, just like what was done with the LLM computation.
+-   Old:
+
+    ```python
+    embedding_function = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
+    ```
+
+-   New
+
+    ```python
+    embedding_function = HuggingFaceEndpointEmbeddings(
+        model=EMBEDDING_MODEL_ID, huggingfacehub_api_token=HF_API_TOKEN
+    )
+    ```
+
+-   Because this speedup was so successful, there is no need to implement the embeding function caching idea.
+
+-   As the VDB computation with Chroma is not too slow (~10s), I'll stop trying to speed this up for now. Partly due to having to configure FAISS to use GPU, which I'll just have in my mind as a lower-priority job.
+
+### Overall computation time of RAG for Harry Potter book 1
+
+(Ignoring computations that round to 0.0s)
+
+-   **Load the PDF**: 2.1s
+-   **Compute the VDB (Chroma)**: 10.3s
+-   **Semantic search (k=3)**: 0.1s
+-   **LLM response (Qwen 235B)**: 13.8s
+
+-   **_Total_**: 26.3s
+
+Using a smaller model
+
+-   **LLM response (Phi-4 14.7B)**: 3.0s
+
+-   **_Total_**: 15.5s
