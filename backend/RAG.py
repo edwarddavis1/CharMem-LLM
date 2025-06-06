@@ -37,7 +37,7 @@ async def file_to_langchain_doc(pdf: UploadFile) -> list[Document]:
             page_content=page_text,
             metadata={
                 "source": pdf.filename,
-                "page": page_num + 1,
+                "page": page_num,
                 "total_pages": len(pdf_reader.pages),
             },
         )
@@ -110,7 +110,7 @@ class EmbeddedPDF:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-    def search_character_context(self, character_name: str, k: int = 50) -> str:
+    def semantic_search(self, character_name: str, k: int = 50) -> str:
         """Search for character-related context in the database."""
 
         if self.db is None:
@@ -129,7 +129,7 @@ class EmbeddedPDF:
 
     def generate_character_analysis(self, character_name: str) -> str:
         """Generate character analysis using the LLM."""
-        context = self.search_character_context(character_name)
+        context = self.semantic_search(character_name)
 
         PROMPT_TEMPLATE = """
         You are a helpful book assistant. Given the following excerpts from a novel, provide the user information about a specified character as clearly and concisely as possible, using only the provided text.

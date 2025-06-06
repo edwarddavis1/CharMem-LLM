@@ -38,7 +38,6 @@ else:
 
 app = FastAPI(title="ChatBot App with Hugging Face LLM")
 
-# Initialise the PDF embedder state
 app.state.pdf_embedder = None
 
 # Mount static files
@@ -118,22 +117,32 @@ async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
 
     try:
-        conversation_history = []
+        app.state.conversation_history = []
 
         while True:
             data = await websocket.receive_text()
             user_message = data.strip()
 
-            # Add user message to conversation history
-            conversation_history.append({"role": "user", "content": user_message})
+            # If available use the uploaded PDF as context for the user message
+            # A semantic search through the PDF will return relevant excerpts
+            if app.state.pdf_embedder is not None:
+                retrieval = app.state.pdf_embedder.semantic_search(user_message)
 
-            # Send a "thinking" message
+                app.state.conversation_history.append(
+                    {
+                        "role": "system",
+                        "content": f"The following information may or may not be relevant to the following user query. If you think that this information is relevant, reference it and give page numbers: {retrieval}",
+                    }
+                )
+
+            # Add user message to conversation history (using ChatML formatting)
+            app.state.conversation_history.append(
+                {"role": "user", "content": user_message}
+            )
+
             await manager.send_message("Bot is thinking...", websocket)
+            response = await query_huggingface(app.state.conversation_history)
 
-            # Get response from Hugging Face Inference Providers
-            response = await query_huggingface(conversation_history)
-
-            # Extract bot's reply from the new response format
             if "error" in response:
                 bot_reply = f"Error: {response['error']}"
                 logger.error(f"Error from Hugging Face: {response['error']}")
@@ -142,8 +151,10 @@ async def websocket_endpoint(websocket: WebSocket):
             else:
                 bot_reply = "Sorry, I couldn't understand the model's response."
 
-            # Add bot reply to conversation history
-            conversation_history.append({"role": "assistant", "content": bot_reply})
+            # Add bot reply to conversation history (using ChatML formatting)
+            app.state.conversation_history.append(
+                {"role": "assistant", "content": bot_reply}
+            )
 
             # Send bot's reply to the client
             await manager.send_message(bot_reply, websocket)
