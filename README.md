@@ -2,7 +2,7 @@
 
 > Never lose track of those minor characters again!
 
-CharMem is an intelligent chat application that helps readers keep track of characters in books and novels. Using advanced RAG (Retrieval-Augmented Generation) technology, it provides instant character summaries, first meeting details, and recent events with precise page references.
+CharMem is an intelligent chat application that helps readers keep track of characters in books and novels. Using retireval augmented generation (RAG), it provides instant character summaries, first meeting details, and recent events with precise page references.
 
 ## 🌟 Key Features
 
@@ -18,38 +18,74 @@ CharMem is an intelligent chat application that helps readers keep track of char
 ### Prerequisites
 
 -   Python 3.11 or 3.12
--   [uv](https://docs.astral.sh/uv/) package manager
 -   Hugging Face API token
 
 ### Installation
 
-1. **Clone the repository**
+#### Option 1: Using UV (Recommended)
+
+1. **Install UV ([see instructions](https://docs.astral.sh/uv/getting-started/installation/))**
+
+2. **Clone and setup**
 
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/edwarddavis1/CharMem-LLM.git
     cd CharMem
-    ```
-
-2. **Install dependencies**
-
-    ```bash
     uv sync
     ```
 
-3. **Set up environment variables**
+3. **Run the application**
+    ```bash
+    uv run run.py
+    ```
+
+#### Option 2: Using Standard Python/Pip
+
+1. **Clone the repository**
+
+    ```bash
+    git clone https://github.com/edwarddavis1/CharMem-LLM.git
+    cd CharMem
+    ```
+
+2. **Create virtual environment**
+
+    ```bash
+    python -m venv .venv
+
+    # On Windows
+    .venv\Scripts\activate
+
+    # On macOS/Linux
+    source .venv/bin/activate
+    ```
+
+3. **Install dependencies**
+
+    ```bash
+    pip install .
+    ```
+
+4. **Run the application**
+    ```bash
+    python run.py
+    ```
+
+#### Final Steps (Both Options)
+
+1. **Generate a Hugging Face API token**
+
+    - Go to [Hugging Face](https://huggingface.co/docs/hub/en/security-tokens) and create a user access token.
+    - Copy the token for use in the next step.
+
+2. **Set up environment variables**
    Create a `.env` file in the root directory:
 
     ```bash
     HUGGINGFACE_API_TOKEN=your_huggingface_api_token_here
     ```
 
-4. **Run the application**
-
-    ```bash
-    uv run python run.py
-    ```
-
-5. **Open your browser**
+3. **Open your browser**
    Navigate to `http://localhost:8000`
 
 ## 💡 How It Works
