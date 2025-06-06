@@ -4,23 +4,29 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEndpointEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
-import os
 import shutil
 from dotenv import load_dotenv
-
 from huggingface_hub import InferenceClient
+import os
+import sys
+from pathlib import Path
+
+# Change to project root directory
+project_root = Path(__file__).parent.parent
+os.chdir(project_root)
+sys.path.insert(0, str(project_root))
+
+from backend.config import MODEL_ID, EMBEDDING_MODEL_ID
 
 # %%
 # Load environment variables
 load_dotenv()
 
 HF_API_TOKEN = os.getenv("HUGGINGFACE_API_TOKEN")
-EMBEDDING_MODEL_ID = os.getenv("EMBEDDING_MODEL_ID")
-MODEL_ID = os.getenv("MODEL_ID")
 # %%
 # LOAD THE DATA
 
-DATA_PATH = "../data/books"
+DATA_PATH = "backend/data/books"
 book = "Harry-Potter-and-the-Philosophers-Stone"
 loader = PyPDFLoader(DATA_PATH + "/" + book + ".pdf")
 pages = loader.load()

@@ -258,7 +258,7 @@ The biggest gaps to the minimum viable product is the frontend. This needs the f
 1. [x] Allow for the user to upload a pdf
 2. [ ] Allow the reader to scroll through the pdf (to read it)
 3. [ ] Take note of the page that the user has reached.
-4. [ ] Perform RAG on the uploaded data
+4. [x] Perform RAG on the uploaded data
 
 ## Uploading the PDF
 
@@ -279,10 +279,10 @@ The biggest gaps to the minimum viable product is the frontend. This needs the f
 
 In the above implementation of the file upload, python simply reads the file and returns a success message without actually doing anything with the data. To perform RAG on the PDF we need the following:
 
--   [ ] Embed the file in chunks (if the file has not been seen before)
--   [ ] Perform a semantic search on the chunks
--   [ ] Engineer a prompt to the model including the retrieval as context.
--   [ ] Call the hugging face client with the prompt
+-   [x] Embed the file in chunks (if the file has not been seen before)
+-   [x] Perform a semantic search on the chunks
+-   [x] Engineer a prompt to the model including the retrieval as context.
+-   [x] Call the hugging face client with the prompt
 
 ### Challenge: speeding up document embedding
 
@@ -345,9 +345,16 @@ Using a smaller model
 -   While Qwen (235B) is a lot slower than Phi-4 (14.7B), it is noticably better. Phi-4 can give wrong info and is not able to say "character not met" like instructed. A model will most likely exist that does as well as Qwen, but is a lot smaller (perhaps a distilled one). The task doesn't seem to be that hard so there isn't a large emphasis on having the largest model.
 -   The process to find such a model, however, is unclear.
 
-### RAG: Next steps
+## End of day summary and next steps
 
--   Now is a good time to add RAG to the main app.
+-   RAG is now implemented in the app.
+-   You can upload a pdf and then every subsequent message to the chatbot will be used as a semantic search term through the PDF, then the chatbot will response based on that context.
+
+### Current issues
+
+-   The way I've implemented the system means that after every message (after PDF upload) a semantic search, returning `k=50` 1,000-character chunks of text is computed and added to the context. While the computation of this 50 chunks is actually pretty quick (~0.1s) the large context is most likely slowing generation.
+
+### RAG improvements
 
 -   Now is the time where it's a good idea to go back to literature. I have everything in place to start experimenting with different RAG paramters and different language models.
 -   It may even be worth setting up benchmarks for different RAG + LLM parameter changes, e.g. accuracy of first meeting (requires manually labelling), accuracy of not meeting the character (easy to get a lot of data after the aforementioned labelling), and accuracy of information provided (unclear how to define a metric).
