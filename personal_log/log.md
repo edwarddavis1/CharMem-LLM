@@ -275,4 +275,12 @@ The biggest gaps to the minimum viable product is the frontend. This needs the f
 
 -   The return from the python function is then collected by the uploadPDF js function: `const result = await response.json()`. The remainder of this function then handles error or success messages.
 
-## Adding RAG to chatbot
+## Adding RAG to the chatbot
+
+In the above implementation of the file upload, python simply reads the file and returns a success message without actually doing anything with the data. To perform RAG on the PDF we need the following:
+
+-   [ ] Save the uploaded file to a database
+-   [ ] Embed the file in chunks (if the file has not been seen before)
+-   [ ] Perform a semantic search on the chunks
+-   [ ] Engineer a prompt to the model including the retrieval as context.
+-   [ ] Call the hugging face client with the prompt
