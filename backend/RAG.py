@@ -1,0 +1,160 @@
+from langchain_core.documents import Document
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from fastapi import UploadFile
+from langchain_chroma import Chroma
+from langchain_huggingface import HuggingFaceEndpointEmbeddings
+from langchain_core.prompts import ChatPromptTemplate
+from huggingface_hub import InferenceClient
+import PyPDF2
+import io
+import os
+from typing import Optional
+
+
+async def file_to_langchain_doc(pdf: UploadFile) -> list[Document]:
+    """
+    Converts a FastAPI UploadFile object to a list of langchain Document objects.
+
+    Args:
+        pdf (UploadFile): The PDF file uploaded via FastAPI.
+
+    Returns:
+        list[Document]: A list of langchain Document objects, each representing a page in the PDF.
+    """
+    content = await pdf.read()
+
+    pdf_reader = PyPDF2.PdfReader(io.BytesIO(content))
+    pages = []
+
+    for page_num, page in enumerate(pdf_reader.pages):
+        page_text = page.extract_text()
+        doc = Document(
+            page_content=page_text,
+            metadata={
+                "source": pdf.filename,
+                "page": page_num + 1,
+                "total_pages": len(pdf_reader.pages),
+            },
+        )
+        pages.append(doc)
+
+    return pages
+
+
+def chunk_langchain_pages(
+    pages: list[Document],
+    chunk_size: int = 1000,
+    chunk_overlap: int = 500,
+    add_start_index: bool = True,
+) -> list[Document]:
+    """
+    Splits a list of langchain Document objects into smaller chunks.
+
+    Args:
+        pages (list[Document]): List of Document objects to chunk
+        chunk_size (int): Maximum size of each chunk
+        chunk_overlap (int): Number of characters to overlap between chunks
+        add_start_index (bool): Whether to add start index to metadata
+
+    Returns:
+        list[Document]: List of chunked Document objects
+    """
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap,
+        length_function=len,
+        add_start_index=add_start_index,
+    )
+    chunks = splitter.split_documents(pages)
+    return chunks
+
+
+class EmbeddedPDF:
+    """Manages PDF processing, vector database, and character analysis."""
+
+    def __init__(self):
+        self.db: Optional[Chroma] = None
+        self.embedding_function = None
+        self._initialize_embedding_function()
+
+    def _initialize_embedding_function(self):
+        """Initialize the embedding function."""
+        self.embedding_function = HuggingFaceEndpointEmbeddings(
+            model=os.getenv("EMBEDDING_MODEL_ID"),
+            huggingfacehub_api_token=os.getenv("HUGGINGFACE_API_TOKEN"),
+        )
+
+    def embed_pdf(self, pages: list[Document]) -> dict:
+        """Embed a list of langchain Document objects into a vector database."""
+        try:
+            # Convert PDF to document pages
+            # pages = await file_to_langchain_doc(pdf)
+
+            # Chunk the content of the pdf
+            chunks = chunk_langchain_pages(pages)
+
+            # Embed the chunks to create the vector database
+            self.db = Chroma.from_documents(chunks, self.embedding_function)
+
+            return {
+                "success": True,
+                "pages": len(pages),
+                "message": f"PDF processed successfully",
+            }
+
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def search_character_context(self, character_name: str, k: int = 50) -> str:
+        """Search for character-related context in the database."""
+
+        if self.db is None:
+            raise ValueError("No PDF has been processed yet")
+
+        results = self.db.similarity_search_with_relevance_scores(character_name, k=k)
+
+        retrieval = "\n\n---\n\n".join(
+            [
+                f"[Page {page.metadata.get('page', 'N/A')}]\n{page.page_content}"
+                for page, _ in results
+            ]
+        )
+
+        return retrieval
+
+    def generate_character_analysis(self, character_name: str) -> str:
+        """Generate character analysis using the LLM."""
+        context = self.search_character_context(character_name)
+
+        PROMPT_TEMPLATE = """
+        You are a helpful book assistant. Given the following excerpts from a novel, provide the user information about a specified character as clearly and concisely as possible, using only the provided text.
+
+        You will provide an answer in three distinct paragraphs to provide information about the following:
+        1. A summary of the character.
+        2. Where we first met the character (including the page number and how they were introduced)
+        3. Some recent events involving the character (recent, i.e. higher page numbers).
+
+        If there is not enough evidence that we have met this character, you must say that we have not met the character.
+
+        Context:
+        {context}
+
+        Character: {query}
+
+        Answer:"""
+
+        prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
+        prompt = prompt_template.format(context=context, query=character_name)
+
+        client = InferenceClient(api_key=os.getenv("HUGGINGFACE_API_TOKEN"))
+        response = client.chat.completions.create(
+            model=os.getenv("MODEL_ID"),
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+        )
+
+        return response.choices[0].message.content
+
+    def has_documents(self) -> bool:
+        """Check if the database has any documents."""
+        return self.db is not None

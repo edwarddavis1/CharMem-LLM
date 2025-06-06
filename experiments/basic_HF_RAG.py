@@ -62,8 +62,8 @@ db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function
 # RAG
 
 # Search the database
-query_text = "Who is Hermione Granger?"
-results = db.similarity_search_with_relevance_scores(query_text, k=3)
+query_text = "Hermione Granger"
+results = db.similarity_search_with_relevance_scores(query_text, k=50)
 
 # # Filter
 # if len(results) == 0 or results[0][1] < 0.5:
@@ -77,6 +77,7 @@ retrieval = "\n\n---\n\n".join(
         for page, _ in results
     ]
 )
+# retrieval = ""
 # %%
 # CREATE RESPONSE
 PROMPT_TEMPLATE = """
@@ -86,6 +87,8 @@ You will provide an answer in three distinct paragraphs to provide information a
 1. A summary of the character.
 2. Where we first met the character (including the page number and how they were introduced)
 3. Some recent events involving the character (recent, i.e. higher page numbers).
+
+If there is not enough evidence that we have met this character, you must say that we have not met the character.
 
 It is important that your answers are formatted like in the following examples.
 

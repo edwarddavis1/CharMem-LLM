@@ -336,3 +336,18 @@ Using a smaller model
 -   **LLM response (Phi-4 14.7B)**: 3.0s
 
 -   **_Total_**: 15.5s
+
+## RAG Performance Improvements
+
+-   The RAG process improved a lot by increasing the value of `k` in the semantic search. This was capped at `k=3` in the original google colab or locally run versions of this project. Now it's possible to increase it to much larger values. I settled on around `k=50` for now.
+-   This allows for the model to incorporate more events into its context, which also increases the change of including the correct meeting point - something that has been difficult up to now.
+
+-   While Qwen (235B) is a lot slower than Phi-4 (14.7B), it is noticably better. Phi-4 can give wrong info and is not able to say "character not met" like instructed. A model will most likely exist that does as well as Qwen, but is a lot smaller (perhaps a distilled one). The task doesn't seem to be that hard so there isn't a large emphasis on having the largest model.
+-   The process to find such a model, however, is unclear.
+
+### RAG: Next steps
+
+-   Now is a good time to add RAG to the main app.
+
+-   Now is the time where it's a good idea to go back to literature. I have everything in place to start experimenting with different RAG paramters and different language models.
+-   It may even be worth setting up benchmarks for different RAG + LLM parameter changes, e.g. accuracy of first meeting (requires manually labelling), accuracy of not meeting the character (easy to get a lot of data after the aforementioned labelling), and accuracy of information provided (unclear how to define a metric).

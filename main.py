@@ -15,8 +15,7 @@ from dotenv import load_dotenv
 import logging
 from pathlib import Path
 from huggingface_hub import InferenceClient
-import PyPDF2
-import io
+from backend.RAG import EmbeddedPDF, file_to_langchain_doc
 
 # Configure logging
 logging.basicConfig(
@@ -28,6 +27,9 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 app = FastAPI(title="ChatBot App with Hugging Face LLM")
+
+# Initialise the PDF embedder state
+app.state.pdf_embedder = None
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=Path("app/static")), name="static")
@@ -159,43 +161,43 @@ async def websocket_endpoint(websocket: WebSocket):
         manager.disconnect(websocket)
 
 
-# Handle uploading a PDF
 @app.post("/upload-pdf")
 async def upload_pdf(pdf: UploadFile = File(...)):
-
     # Validate file type
     if not pdf.filename or not pdf.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are allowed")
 
-    try:
-        # Read the PDF content
-        content = await pdf.read()
+    pages = await file_to_langchain_doc(pdf)
 
-        # Extract text from PDF
-        pdf_reader = PyPDF2.PdfReader(io.BytesIO(content))
-        text_content = ""
+    app.state.pdf_embedder = EmbeddedPDF()
+    result = app.state.pdf_embedder.embed_pdf(pages)
 
-        for page in pdf_reader.pages:
-            text_content += page.extract_text() + "\n"
-
-        # Store the PDF content (you can save this to a database or file)
-        # For now, we'll just print it
-        print(f"PDF '{pdf.filename}' uploaded with {len(pdf_reader.pages)} pages")
-        print(f"Extracted text preview: {text_content[:200]}...")
-
+    if result["success"]:
         return {
-            "message": f"PDF '{pdf.filename}' uploaded successfully",
-            "pages": len(pdf_reader.pages),
-            "text_preview": (
-                # text_content
-                text_content[:200] + "..."
-                if len(text_content) > 200
-                else text_content
-            ),
+            "message": result["message"],
+            "pages": result["pages"],
         }
+    else:
+        raise HTTPException(
+            status_code=500, detail=f"Error processing PDF: {result['error']}"
+        )
+
+
+@app.post("/query-character")
+async def query_character(character_name: str):
+    """Query character information from uploaded PDFs."""
+    try:
+        if app.state.pdf_embedder is None:
+            raise HTTPException(
+                status_code=400,
+                detail="No PDF has been uploaded yet. Please upload a PDF first.",
+            )
+
+        analysis = app.state.pdf_embedder.generate_character_analysis(character_name)
+        return {"character": character_name, "analysis": analysis}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing PDF: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":
