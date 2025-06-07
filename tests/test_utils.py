@@ -2,8 +2,9 @@
 Test utilities and fixtures for RAG tests.
 """
 
+from unittest.mock import AsyncMock, Mock
+
 import pytest
-from unittest.mock import Mock, AsyncMock
 from fastapi import UploadFile
 from langchain_core.documents import Document
 

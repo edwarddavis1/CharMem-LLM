@@ -5,7 +5,13 @@ from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
 import os
-import shutil
+
+from huggingface_hub import login
+from dotenv import load_dotenv
+
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import torch
+
 
 # %%
 # LOAD THE DATA
@@ -114,18 +120,12 @@ prompt = prompt_template.format(context=retrieval, query=query_text)
 # LOGIN TO HUGGING FACE
 # So we can access HF models
 
-from huggingface_hub import login
-from dotenv import load_dotenv
-
 load_dotenv()
 HF_TOKEN = os.getenv("HF_TOKEN")
 login(HF_TOKEN)
 
 # %%
 # LOAD LOCAL LLM
-
-from transformers import AutoTokenizer, AutoModelForCausalLM
-import torch
 
 model_id = "microsoft/Phi-4-mini-instruct"  # (7.16 GB)
 # model_id = "LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct"  # (8.96 GB)

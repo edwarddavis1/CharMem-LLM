@@ -2,21 +2,19 @@
 Tests for the RAG.py module.
 """
 
-import pytest
 import os
-from unittest.mock import Mock, AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 from fastapi import UploadFile
 from langchain_core.documents import Document
 
-from backend.RAG import file_to_langchain_doc, chunk_langchain_pages, EmbeddedPDF
+from backend.RAG import EmbeddedPDF, chunk_langchain_pages, file_to_langchain_doc
 from tests.test_utils import (
-    sample_pdf_upload,
-    sample_chunked_documents,
-    sample_documents,
-    MockPyPDF2Reader,
     MockChroma,
     MockHuggingFaceEmbeddings,
     MockInferenceClient,
+    MockPyPDF2Reader,
 )
 
 

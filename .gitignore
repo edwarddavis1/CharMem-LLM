@@ -22,3 +22,6 @@ wheels/
 chroma/
 faiss/
 
+# Cache
+.pytest_cache/
+.ruff_cache/

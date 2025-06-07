@@ -76,7 +76,7 @@ async def query_huggingface(conversation_history):
                 "error": "InferenceClient not initialized. Check your HUGGINGFACE_API_TOKEN."
             }
 
-        logger.info(f"Sending request to Hugging Face Inference Providers")
+        logger.info("Sending request to Hugging Face Inference Providers")
         logger.info(f"Model: {MODEL_ID}")
         logger.info(f"Conversation length: {len(conversation_history)}")
 
@@ -165,7 +165,7 @@ async def websocket_endpoint(websocket: WebSocket):
         logger.error(f"WebSocket error: {str(e)}", exc_info=True)
         try:
             await manager.send_message(f"Connection error: {str(e)}", websocket)
-        except:
+        except (WebSocketDisconnect, ConnectionResetError, RuntimeError):
             pass
         manager.disconnect(websocket)
 
