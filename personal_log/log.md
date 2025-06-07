@@ -353,7 +353,7 @@ Using a smaller model
 ### Current issues
 
 -   [ ] The way I've implemented the system means that after every message (after PDF upload) a semantic search, returning `k=50` 1,000-character chunks of text is computed and added to the context. While the computation of this 50 chunks is actually pretty quick (~0.1s) the large context is most likely slowing generation.
--   [ ] No tests in place yet!
+-   [x] No tests in place yet!
 
 ### RAG improvements
 
@@ -370,9 +370,9 @@ Mock testing can be used to replace API calls.
 The syntax for adding mocks in place of API calls is as follows:
 
 ```python
-@patch("A")  ← Added last,  matches first parameter
-@patch("B")  ← Added middle, matches second parameter
-@patch("C")  ← Added first,  matches third parameter
+@patch("A")  ← Matches first parameter
+@patch("B")  ← Matches second parameter
+@patch("C")  ← Matches third parameter
 def test(self, param1, param2, param3):
            ↑       ↑       ↑
            A       B       C
@@ -453,6 +453,17 @@ To make this even easier, I've added two lines to the `pyproject.toml` which run
 addopts = "--cov=backend"
 ```
 
+Example:
+
+```bash
+Name                Stmts   Miss  Cover
+---------------------------------------
+backend\RAG.py         57      0   100%
+backend\config.py       2      0   100%
+---------------------------------------
+TOTAL                  59      0   100%
+```
+
 ### Continuous Integration
 
 #### Workflows
@@ -462,3 +473,21 @@ To make the code more robust, I've added the `test-and-lint.yaml` GitHub Actions
 #### Pre-commits
 
 One thing I haven't come across before is the idea of pre-commits. These are scripts that run before a commit is made, allowing you to check the code for errors or formatting issues before it is committed to the repository.
+
+This is great because if you accidentally try to push before running tests or linting, it will fail and you can fix the issues without having to wait for the CI to run.
+
+The instructions for the pre-commit are in the `.pre-commit-config.yaml` file, and the `pre-commit` package is requires - I've put this under the `dev` dependencies in the `pyproject.toml`.
+
+Example:
+
+```bash
+> git commit -m "Add new feature"
+check yaml...............................................................Passed
+fix end of files.........................................................Passed
+trim trailing whitespace.................................................Passed
+check for added large files..............................................Passed
+check for merge conflicts................................................Passed
+ruff (legacy alias)..................................(no files to check)Skipped
+ruff format..........................................(no files to check)Skipped
+pytest-check.............................................................Passed
+```
