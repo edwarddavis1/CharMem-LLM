@@ -362,7 +362,9 @@ Using a smaller model
 
 # [2025-6-7 Sat]
 
-## Adding Python Tests - Mock Testing
+## Testing Python RAG functions
+
+### Mock Testing
 
 Mock testing can be used to replace API calls.
 The syntax for adding mocks in place of API calls is as follows:
@@ -432,18 +434,31 @@ class MockChatCompletions:
 
 As this _mocks_ the `response = client.chat.completions.create()` structure used in `generate_character_analysis`.
 
-## Researching new tools
+### Coverage Testing
 
--   LangSmith, LangGraph, LangChainHub
--   LangGraph, Dify, CrewAI
+Coverage testing is a way to ensure that all parts of the code are tested. In Python, this can be done using the `coverage` package. It tracks which lines of code are executed during tests and reports on the coverage percentage.
 
--   Docker, AWS
+When using pytest, you can run
 
--   CUDA, PTX/SASS
--   Triton, cuDNN, cuBLAS, CUBo
+```bash
+pytest --cov=backend
+```
 
--   ONNX, OpenVINO, TensorRT
+to run the tests and check the coverage of the backend directory.
 
--   RL for training
+To make this even easier, I've added two lines to the `pyproject.toml` which runs the coverage check automatically when running `pytest`:
 
--   Kubernetes, Docker Swarm, Nomad
+```toml
+[tool.pytest.ini_options]
+addopts = "--cov=backend"
+```
+
+### Continuous Integration
+
+#### Workflows
+
+To make the code more robust, I've added the `test-and-lint.yaml` GitHub Actions workflow to run the tests automatically (with coverage) on every push and pull request to `main` and to lint the code using _ruff_.
+
+#### Pre-commits
+
+One thing I haven't come across before is the idea of pre-commits. These are scripts that run before a commit is made, allowing you to check the code for errors or formatting issues before it is committed to the repository.

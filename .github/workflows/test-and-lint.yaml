@@ -35,10 +35,4 @@ jobs:
 
             - name: Run tests with pytest
               run: |
-                  uv run pytest tests/ --cov=backend --cov-report=xml --cov-report=term
-
-            - name: Upload coverage to Codecov
-              uses: codecov/codecov-action@v3
-              with:
-                  file: ./coverage.xml
-                  fail_ci_if_error: true
+                  uv run pytest tests/ --cov=backend
