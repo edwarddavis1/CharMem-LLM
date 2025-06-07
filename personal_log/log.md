@@ -352,9 +352,28 @@ Using a smaller model
 
 ### Current issues
 
--   The way I've implemented the system means that after every message (after PDF upload) a semantic search, returning `k=50` 1,000-character chunks of text is computed and added to the context. While the computation of this 50 chunks is actually pretty quick (~0.1s) the large context is most likely slowing generation.
+-   [ ] The way I've implemented the system means that after every message (after PDF upload) a semantic search, returning `k=50` 1,000-character chunks of text is computed and added to the context. While the computation of this 50 chunks is actually pretty quick (~0.1s) the large context is most likely slowing generation.
+-   [ ] No tests in place yet!
 
 ### RAG improvements
 
 -   Now is the time where it's a good idea to go back to literature. I have everything in place to start experimenting with different RAG paramters and different language models.
 -   It may even be worth setting up benchmarks for different RAG + LLM parameter changes, e.g. accuracy of first meeting (requires manually labelling), accuracy of not meeting the character (easy to get a lot of data after the aforementioned labelling), and accuracy of information provided (unclear how to define a metric).
+
+# [2025-6-7 Sat]
+
+## Researching new tools
+
+-   LangSmith, LangGraph, LangChainHub
+-   LangGraph, Dify, CrewAI
+
+-   Docker, AWS
+
+-   CUDA, PTX/SASS
+-   Triton, cuDNN, cuBLAS, CUBo
+
+-   ONNX, OpenVINO, TensorRT
+
+-   RL for training
+
+-   Kubernetes, Docker Swarm, Nomad
