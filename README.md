@@ -13,6 +13,12 @@ CharMem is an intelligent chat application that helps readers keep track of char
 -   **📍 Page References**: Get exact page numbers for character introductions and events
 -   **🎨 Modern UI**: Responsive dark-themed interface with smooth animations
 
+## 🎬 Demo
+
+![CharMem Demo](demo/CharMem_demo.gif)
+
+_See CharMem in action: Upload a PDF, ask about characters, and get instant insights with page references!_
+
 ## 🚀 Quick Start
 
 ### Prerequisites
