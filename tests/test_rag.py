@@ -18,6 +18,54 @@ from tests.test_utils import (
 )
 
 
+@pytest.fixture
+def sample_pdf_upload():
+    """Create a mock UploadFile for testing."""
+    content = b"Sample PDF content for testing"
+    mock_file = Mock(spec=UploadFile)
+    mock_file.read = AsyncMock(return_value=content)
+    mock_file.filename = "test_book.pdf"
+    return mock_file
+
+
+@pytest.fixture
+def sample_documents():
+    """Create sample Document objects for testing."""
+    return [
+        Document(
+            page_content="Harry Potter is a young wizard who lives with his aunt and uncle.",
+            metadata={"source": "test_book.pdf", "page": 0, "total_pages": 3},
+        ),
+        Document(
+            page_content="Hermione Granger is a brilliant witch and Harry's best friend.",
+            metadata={"source": "test_book.pdf", "page": 1, "total_pages": 3},
+        ),
+        Document(
+            page_content="Ron Weasley is Harry's loyal friend from a pure-blood wizarding family.",
+            metadata={"source": "test_book.pdf", "page": 2, "total_pages": 3},
+        ),
+    ]
+
+
+@pytest.fixture
+def sample_chunked_documents():
+    """Create sample chunked Document objects for testing."""
+    return [
+        Document(
+            page_content="Harry Potter is a young wizard",
+            metadata={"source": "test_book.pdf", "page": 0, "start_index": 0},
+        ),
+        Document(
+            page_content="who lives with his aunt and uncle.",
+            metadata={"source": "test_book.pdf", "page": 0, "start_index": 30},
+        ),
+        Document(
+            page_content="Hermione Granger is a brilliant witch",
+            metadata={"source": "test_book.pdf", "page": 1, "start_index": 0},
+        ),
+    ]
+
+
 class TestFileToLangchainDoc:
     """Test the file_to_langchain_doc function."""
 

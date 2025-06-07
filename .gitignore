@@ -7,6 +7,9 @@ wheels/
 *.egg-info
 *.Zone.Identifier
 
+.vscode/
+.coverage
+
 # environment files
 .env
 .DS_Store
