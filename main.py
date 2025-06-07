@@ -108,7 +108,7 @@ async def query_huggingface(conversation_history):
 async def get_root(request: Request):
     return templates.TemplateResponse(
         "index.html",
-        {"request": request, "app_name": "My ChatBot", "model_name": MODEL_ID},
+        {"request": request, "app_name": "CharMem", "model_name": MODEL_ID},
     )
 
 
