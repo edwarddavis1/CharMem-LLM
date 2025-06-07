@@ -1,15 +1,16 @@
-from langchain_core.documents import Document
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from fastapi import UploadFile
-from langchain_chroma import Chroma
-from langchain_huggingface import HuggingFaceEndpointEmbeddings
-from langchain_core.prompts import ChatPromptTemplate
-from huggingface_hub import InferenceClient
-import PyPDF2
 import io
 import os
-from typing import Optional
+
+import PyPDF2
 from dotenv import load_dotenv
+from fastapi import UploadFile
+from huggingface_hub import InferenceClient
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_chroma import Chroma
+from langchain_core.documents import Document
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_huggingface import HuggingFaceEndpointEmbeddings
+
 from backend.config import EMBEDDING_MODEL_ID, MODEL_ID
 
 load_dotenv()
@@ -78,7 +79,7 @@ class EmbeddedPDF:
     """Manages PDF processing, vector database, and character analysis."""
 
     def __init__(self):
-        self.db: Optional[Chroma] = None
+        self.db: Chroma | None = None
         self.embedding_function = None
         self._initialize_embedding_function()
 
@@ -104,7 +105,7 @@ class EmbeddedPDF:
             return {
                 "success": True,
                 "pages": len(pages),
-                "message": f"PDF processed successfully",
+                "message": "PDF processed successfully",
             }
 
         except Exception as e:
@@ -158,7 +159,7 @@ class EmbeddedPDF:
             temperature=0.7,
         )
 
-        return response.choices[0].message.content
+        return response.choices[0].message.content or ""
 
     def has_documents(self) -> bool:
         """Check if the database has any documents."""

@@ -353,7 +353,7 @@ Using a smaller model
 ### Current issues
 
 -   [ ] The way I've implemented the system means that after every message (after PDF upload) a semantic search, returning `k=50` 1,000-character chunks of text is computed and added to the context. While the computation of this 50 chunks is actually pretty quick (~0.1s) the large context is most likely slowing generation.
--   [ ] No tests in place yet!
+-   [x] No tests in place yet!
 
 ### RAG improvements
 
@@ -362,18 +362,132 @@ Using a smaller model
 
 # [2025-6-7 Sat]
 
-## Researching new tools
+## Testing Python RAG functions
 
--   LangSmith, LangGraph, LangChainHub
--   LangGraph, Dify, CrewAI
+### Mock Testing
 
--   Docker, AWS
+Mock testing can be used to replace API calls.
+The syntax for adding mocks in place of API calls is as follows:
 
--   CUDA, PTX/SASS
--   Triton, cuDNN, cuBLAS, CUBo
+```python
+@patch("A")  ← Matches first parameter
+@patch("B")  ← Matches second parameter
+@patch("C")  ← Matches third parameter
+def test(self, param1, param2, param3):
+           ↑       ↑       ↑
+           A       B       C
+```
 
--   ONNX, OpenVINO, TensorRT
+Let's look at an example in the codebase. The current form of the `generate_character_analysis` function uses `Chroma`, `HuggingFaceEndpointEmbeddings`, and `InferenceClient` to perform the RAG process. We can mock these to test the function without making actual API calls. The order of the `@patch` decorators and the arguments of the test function are used to assign mock classes in place of the real, expensive classes.
 
--   RL for training
+```python
+@patch("backend.RAG.HuggingFaceEndpointEmbeddings")
+@patch("backend.RAG.Chroma.from_documents")
+@patch("backend.RAG.InferenceClient")
+def test_generate_character_analysis(
+    self, mock_client, mock_chroma, mock_embeddings, sample_documents
+):
+    """Test character analysis generation."""
+    # Setup mocks
+    mock_embeddings.return_value = MockHuggingFaceEmbeddings()
+    mock_db = MockChroma(sample_documents)
+    mock_chroma.return_value = mock_db
+    mock_client.return_value = MockInferenceClient()
+```
 
--   Kubernetes, Docker Swarm, Nomad
+With this in place, we simply define "mock" classes which are just classes with the same structure as the real classes with some made-up data. For example, the `MockInferenceClient` class can be defined as follows:
+
+```python
+class MockInferenceClient:
+    """Mock Hugging Face InferenceClient for testing."""
+
+    def __init__(self, api_key=None):
+        self.api_key = api_key
+        self.chat = MockChat()
+
+
+class MockChat:
+    """Mock chat object for testing."""
+
+    def __init__(self):
+        self.completions = MockChatCompletions()
+
+
+class MockChatCompletions:
+    """Mock chat completions for testing."""
+
+    def create(self, messages=None):
+        # Return a mock response based on the input
+        user_message = messages[0]["content"] if messages else ""
+
+        if "Harry Potter" in user_message:
+            content = "Harry Potter is the main protagonist of the series."
+        elif "Hermione" in user_message:
+            content = (
+                "Hermione Granger is a brilliant witch and one of Harry's best friends."
+            )
+        else:
+            content = "Character information not found in the provided context."
+
+        return MockChatResponse(content)
+```
+
+As this _mocks_ the `response = client.chat.completions.create()` structure used in `generate_character_analysis`.
+
+### Coverage Testing
+
+Coverage testing is a way to ensure that all parts of the code are tested. In Python, this can be done using the `coverage` package. It tracks which lines of code are executed during tests and reports on the coverage percentage.
+
+When using pytest, you can run
+
+```bash
+pytest --cov=backend
+```
+
+to run the tests and check the coverage of the backend directory.
+
+To make this even easier, I've added two lines to the `pyproject.toml` which runs the coverage check automatically when running `pytest`:
+
+```toml
+[tool.pytest.ini_options]
+addopts = "--cov=backend"
+```
+
+Example:
+
+```bash
+Name                Stmts   Miss  Cover
+---------------------------------------
+backend\RAG.py         57      0   100%
+backend\config.py       2      0   100%
+---------------------------------------
+TOTAL                  59      0   100%
+```
+
+### Continuous Integration
+
+#### Workflows
+
+To make the code more robust, I've added the `test-and-lint.yaml` GitHub Actions workflow to run the tests automatically (with coverage) on every push and pull request to `main` and to lint the code using _ruff_.
+
+#### Pre-commits
+
+One thing I haven't come across before is the idea of pre-commits. These are scripts that run before a commit is made, allowing you to check the code for errors or formatting issues before it is committed to the repository.
+
+This is great because if you accidentally try to push before running tests or linting, it will fail and you can fix the issues without having to wait for the CI to run.
+
+The instructions for the pre-commit are in the `.pre-commit-config.yaml` file, and the `pre-commit` package is requires - I've put this under the `dev` dependencies in the `pyproject.toml`.
+
+Example:
+
+```bash
+> git commit -m "Add new feature"
+check yaml...............................................................Passed
+fix end of files.........................................................Passed
+trim trailing whitespace.................................................Passed
+check for added large files..............................................Passed
+check for merge conflicts................................................Passed
+ruff (legacy alias)..................................(no files to check)Skipped
+ruff format..........................................(no files to check)Skipped
+pytest-check.............................................................Passed
+```

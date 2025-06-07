@@ -2,14 +2,14 @@
 import os
 import sys
 from pathlib import Path
+from langchain.document_loaders import PyPDFLoader
 
 # Change to project root directory
 project_root = Path(__file__).parent.parent
 os.chdir(project_root)
 sys.path.insert(0, str(project_root))
 
-from backend.RAG import EmbeddedPDF
-from langchain.document_loaders import PyPDFLoader
+from backend.RAG import EmbeddedPDF  # noqa: E402
 
 # %%
 DATA_PATH = "backend/data/books"

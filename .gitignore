@@ -7,6 +7,9 @@ wheels/
 *.egg-info
 *.Zone.Identifier
 
+.vscode/
+.coverage
+
 # environment files
 .env
 .DS_Store
@@ -22,3 +25,6 @@ wheels/
 chroma/
 faiss/
 
+# Cache
+.pytest_cache/
+.ruff_cache/

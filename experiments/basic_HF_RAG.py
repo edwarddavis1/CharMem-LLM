@@ -16,7 +16,7 @@ project_root = Path(__file__).parent.parent
 os.chdir(project_root)
 sys.path.insert(0, str(project_root))
 
-from backend.config import MODEL_ID, EMBEDDING_MODEL_ID
+from backend.config import MODEL_ID, EMBEDDING_MODEL_ID  # noqa: E402
 
 # %%
 # Load environment variables
