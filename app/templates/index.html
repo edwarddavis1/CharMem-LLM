@@ -3,11 +3,11 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{{ app_name }}</title>
-        
+
         <!-- Favicon using app's gradient colors -->
         <link rel="icon" href="{{ url_for('static', path='/favicon.svg') }}" type="image/svg+xml">
         <link rel="alternate icon" href="{{ url_for('static', path='/favicon.svg') }}">
-        
+
         <link
             rel="stylesheet"
             href="{{ url_for('static', path='/css/styles.css') }}"
@@ -38,10 +38,10 @@
                     placeholder="Type your message here..."
                     rows="2"
                 ></textarea>
-                <input 
-                    type="file" 
-                    id="pdf-upload" 
-                    accept=".pdf" 
+                <input
+                    type="file"
+                    id="pdf-upload"
+                    accept=".pdf"
                     style="display: none;"
                 />
                 <button id="upload-btn" type="button">Upload PDF</button>
