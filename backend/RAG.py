@@ -158,7 +158,7 @@ class EmbeddedPDF:
             temperature=0.7,
         )
 
-        return response.choices[0].message.content
+        return response.choices[0].message.content or ""
 
     def has_documents(self) -> bool:
         """Check if the database has any documents."""

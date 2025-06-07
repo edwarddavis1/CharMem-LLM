@@ -362,6 +362,76 @@ Using a smaller model
 
 # [2025-6-7 Sat]
 
+## Adding Python Tests - Mock Testing
+
+Mock testing can be used to replace API calls.
+The syntax for adding mocks in place of API calls is as follows:
+
+```python
+@patch("A")  ← Added last,  matches first parameter
+@patch("B")  ← Added middle, matches second parameter
+@patch("C")  ← Added first,  matches third parameter
+def test(self, param1, param2, param3):
+           ↑       ↑       ↑
+           A       B       C
+```
+
+Let's look at an example in the codebase. The current form of the `generate_character_analysis` function uses `Chroma`, `HuggingFaceEndpointEmbeddings`, and `InferenceClient` to perform the RAG process. We can mock these to test the function without making actual API calls. The order of the `@patch` decorators and the arguments of the test function are used to assign mock classes in place of the real, expensive classes.
+
+```python
+@patch("backend.RAG.HuggingFaceEndpointEmbeddings")
+@patch("backend.RAG.Chroma.from_documents")
+@patch("backend.RAG.InferenceClient")
+def test_generate_character_analysis(
+    self, mock_client, mock_chroma, mock_embeddings, sample_documents
+):
+    """Test character analysis generation."""
+    # Setup mocks
+    mock_embeddings.return_value = MockHuggingFaceEmbeddings()
+    mock_db = MockChroma(sample_documents)
+    mock_chroma.return_value = mock_db
+    mock_client.return_value = MockInferenceClient()
+```
+
+With this in place, we simply define "mock" classes which are just classes with the same structure as the real classes with some made-up data. For example, the `MockInferenceClient` class can be defined as follows:
+
+```python
+class MockInferenceClient:
+    """Mock Hugging Face InferenceClient for testing."""
+
+    def __init__(self, api_key=None):
+        self.api_key = api_key
+        self.chat = MockChat()
+
+
+class MockChat:
+    """Mock chat object for testing."""
+
+    def __init__(self):
+        self.completions = MockChatCompletions()
+
+
+class MockChatCompletions:
+    """Mock chat completions for testing."""
+
+    def create(self, messages=None):
+        # Return a mock response based on the input
+        user_message = messages[0]["content"] if messages else ""
+
+        if "Harry Potter" in user_message:
+            content = "Harry Potter is the main protagonist of the series."
+        elif "Hermione" in user_message:
+            content = (
+                "Hermione Granger is a brilliant witch and one of Harry's best friends."
+            )
+        else:
+            content = "Character information not found in the provided context."
+
+        return MockChatResponse(content)
+```
+
+As this _mocks_ the `response = client.chat.completions.create()` structure used in `generate_character_analysis`.
+
 ## Researching new tools
 
 -   LangSmith, LangGraph, LangChainHub

@@ -18,3 +18,38 @@ dependencies = [
     "python-multipart>=0.0.20",
     "sentence-transformers>=4.1.0",
 ]
+
+[dependency-groups]
+test = [
+    "coverage>=7.8.2",
+    "pytest>=8.4.0",
+    "pytest-asyncio>=1.0.0",
+    "pytest-cov>=6.1.1",
+    "pytest-mock>=3.14.1",
+]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --strict-markers --cov=backend --cov-report=term-missing"
+testpaths = ["tests"]
+markers = [
+    "slow: marks tests as slow",
+    "integration: marks tests as integration tests", 
+    "unit: marks tests as unit tests",
+]
+
+[tool.coverage.run]
+source = ["backend"]
+omit = [
+    "tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]
