@@ -100,9 +100,6 @@ class EmbeddedPDF:
     def embed_pdf(self, pages: list[Document]) -> dict:
         """Embed a list of langchain Document objects into a vector database."""
         try:
-            # Convert PDF to document pages
-            # pages = await file_to_langchain_doc(pdf)
-
             # Chunk the content of the pdf
             chunks = chunk_langchain_pages(pages)
 
