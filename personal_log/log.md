@@ -468,7 +468,7 @@ TOTAL                  59      0   100%
 
 #### Workflows
 
-To make the code more robust, I've added the `test-and-lint.yaml` GitHub Actions workflow to run the tests automatically (with coverage) on every push and pull request to `main` and to lint the code using _ruff_.
+To make the code more robust, I've added the `test-and-lint.yaml` GitHub Actions workflow to build the project and run the tests automatically (with coverage) on every push and pull request to `main` and to lint the code using _ruff_.
 
 #### Pre-commits
 
@@ -491,3 +491,17 @@ ruff (legacy alias)..................................(no files to check)Skipped
 ruff format..........................................(no files to check)Skipped
 pytest-check.............................................................Passed
 ```
+
+# [2025-6-9 Mon]
+
+## Next steps
+
+-   [ ] Docker
+-   [ ] Look into agentic RAG and _Reasoning Based Retrieval_.
+-   [ ] Think about how to fix the hallucination issues.
+
+### Hallucination issues
+
+In the context of this project, hallucination refers to the LLM generating information that is not present in the PDF (regardless of whether it is correct or not).
+
+For example, when asked about Hermione Granger, CharMem introduced her as Hermione _Jean_ Granger. This middle name is not present in the PDF, meaning that the model was using information it learned outside of the PDF. This is not ideal behaviour.

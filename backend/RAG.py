@@ -78,10 +78,17 @@ def chunk_langchain_pages(
 class EmbeddedPDF:
     """Manages PDF processing, vector database, and character analysis."""
 
-    def __init__(self):
+    def __init__(
+        self,
+        num_return_chunks=50,
+        chunk_size=1000,
+    ):
         self.db: Chroma | None = None
         self.embedding_function = None
         self._initialize_embedding_function()
+
+        self.chunk_size = chunk_size
+        self.num_return_chunks = num_return_chunks
 
     def _initialize_embedding_function(self):
         """Initialize the embedding function."""
@@ -130,7 +137,7 @@ class EmbeddedPDF:
 
     def generate_character_analysis(self, character_name: str) -> str:
         """Generate character analysis using the LLM."""
-        context = self.semantic_search(character_name)
+        context = self.semantic_search(character_name, k=self.num_return_chunks)
 
         PROMPT_TEMPLATE = """
         You are a helpful book assistant. Given the following excerpts from a novel, provide the user information about a specified character as clearly and concisely as possible, using only the provided text.
