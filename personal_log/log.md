@@ -468,7 +468,7 @@ TOTAL                  59      0   100%
 
 #### Workflows
 
-To make the code more robust, I've added the `test-and-lint.yaml` GitHub Actions workflow to run the tests automatically (with coverage) on every push and pull request to `main` and to lint the code using _ruff_.
+To make the code more robust, I've added the `test-and-lint.yaml` GitHub Actions workflow to build the project and run the tests automatically (with coverage) on every push and pull request to `main` and to lint the code using _ruff_.
 
 #### Pre-commits
 
@@ -491,3 +491,93 @@ ruff (legacy alias)..................................(no files to check)Skipped
 ruff format..........................................(no files to check)Skipped
 pytest-check.............................................................Passed
 ```
+
+# [2025-6-9 Mon]
+
+## Next steps
+
+-   [ ] Docker
+-   [ ] Look into agentic RAG and _Reasoning Based Retrieval_.
+-   [ ] Think about how to fix the hallucination issues.
+
+### Hallucination issues
+
+In the context of this project, hallucination refers to the LLM generating information that is not present in the PDF (regardless of whether it is correct or not).
+
+For example, when asked about Hermione Granger, CharMem introduced her as Hermione _Jean_ Granger. This middle name is not present in the PDF, meaning that the model was using information it learned outside of the PDF. This is not ideal behaviour.
+
+## Docker
+
+### Overview
+
+Docker is used to containerise code. When code is containerised, the project can be easily shared as this eliminates the "well it works on my machine" problems.
+
+For this project (in its current state), I only need one container as FastAPI serves both API endpoints and the static files - everything runs on one port. In the case where I had a separate database, separate API servers, microservices architecture or vastly different scaling needs, I would likely need more than one container.
+
+### Example Dockerfile
+
+Below is the Dockerfile that I'm starting with.
+
+```Dockerfile
+# slim - i.e. Just python + essential libraries (~150MB compared to full Python's ~900MB)
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Use UV to install the dependencies defined in the pyproject.toml
+RUN pip install uv
+
+# Copy over project files to the container
+COPY . .
+
+RUN uv sync
+
+# For documentation - it explains that we expect the code to run on port 8000
+EXPOSE 8000
+
+# We use CMD here as this line is used to _start_ the container: this executes at run time
+# In the above cases, RUN is used during the building of the container: these execute at build time
+# We have also specified "--reload" to refresh the server after changes as this is more development focused
+# If we were to productionise this container, we would get rid of "--reload" as this slows the process
+CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+```
+
+_Note that for the actual Dockerfile that I'm using, you can exploit speedups and efficiencies with UV and Docker (see [this](https://depot.dev/docs/container-builds/how-to-guides/optimal-dockerfiles/python-uv-dockerfile) for more). However, this is the overall structure to expect for a Dockerfile._
+
+### Starting Docker
+
+First, we need to build the container to create a Docker _image_. A Docker image is a snapshot, or _template_ of the code and includes everything required to make the code run. This is inherently _static_ - it doesn't run anything, it's just a blueprint. We can create this image using the following.
+
+```bash
+docker build -t charmem .
+```
+
+Next, we need to run the container.
+
+_If the image is a cake recipie, the container is actually baking and eating the cake._
+
+`docker run` takes the image we just created and creates a new container from it. This then starts an isolated environment and runs the code.
+
+```bash
+docker run -p 8000:8000 charmem -e API_TOKEN=<api_token>
+```
+
+By using `-p HOST_PORT:CONTAINER_PORT`, we select the port for the container to map to. `-p 8000:8000` means that the app will be available on localhost:8000, just like it is normally. If we did `-p 9000:8000`, this means that the app will be available on localhost:9000.
+
+Also, we require `-e` to set up the environment variable.
+
+Then, for someone to use the code, they simply clone the repo, create the docker image, and run the container.
+
+```bash
+git clone <charmem-git-url>
+docker build -t charmem
+docker run -p 8000:8000 charmem
+```
+
+### Typical docker development workflow
+
+-   **Daily development**: Use the `uv run run.py` command as normal.
+
+-   **Periodically test docker**:
+    `docker build -t charmem .`
+    `docker run -p 8000:8000 charmem`

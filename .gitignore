@@ -18,6 +18,9 @@ wheels/
 .env.test.local
 .env.production.local
 
+# secret files
+.secrets.baseline
+
 # Virtual environments
 .venv
 

@@ -1,6 +1,6 @@
 # CharMem: AI-Powered Character Memory Assistant
 
-> Never lose track of those minor characters again!
+> Lost the plot? Use CharMem!
 
 CharMem is an intelligent chat application that helps readers keep track of characters in books and novels. Using retireval augmented generation (RAG), it provides instant character summaries, first meeting details, and recent events with precise page references.
 
