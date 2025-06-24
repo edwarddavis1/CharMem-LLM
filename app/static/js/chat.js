@@ -10,8 +10,44 @@ document.addEventListener("DOMContentLoaded", () => {
     const chatMessages = document.getElementById("chat-messages");
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
-    const uploadBtn = document.getElementById("upload-btn");
     const pdfUpload = document.getElementById("pdf-upload");
+    const pdfPlaceholder = document.getElementById("pdf-placeholder");
+    const divider = document.getElementById("divider");
+    const pdfSection = document.getElementById("pdf-section");
+    const mainContainer = document.querySelector(".main-container");
+
+    // ========================================
+    // RESIZABLE DIVIDER FUNCTIONALITY
+    // ========================================
+    let isResizing = false;
+
+    divider.addEventListener("mousedown", (e) => {
+        isResizing = true;
+        document.body.style.cursor = "col-resize";
+        document.body.style.userSelect = "none";
+        e.preventDefault();
+    });
+
+    document.addEventListener("mousemove", (e) => {
+        if (!isResizing) return;
+
+        const containerRect = mainContainer.getBoundingClientRect();
+        const newPdfWidth =
+            ((e.clientX - containerRect.left) / containerRect.width) * 100;
+
+        // Constrain width between 20% and 80%
+        if (newPdfWidth >= 20 && newPdfWidth <= 80) {
+            pdfSection.style.flex = `0 0 ${newPdfWidth}%`;
+        }
+    });
+
+    document.addEventListener("mouseup", () => {
+        if (isResizing) {
+            isResizing = false;
+            document.body.style.cursor = "";
+            document.body.style.userSelect = "";
+        }
+    });
 
     // ========================================
     // GLOBAL STATE
@@ -240,8 +276,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Send button click
     sendBtn.addEventListener("click", sendMessage);
 
-    // PDF upload button click
-    uploadBtn.addEventListener("click", () => {
+    // PDF placeholder click (replaces upload button)
+    pdfPlaceholder.addEventListener("click", () => {
         pdfUpload.click();
     });
 

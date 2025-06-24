@@ -1,52 +1,115 @@
 <!DOCTYPE html>
-<html lang="en">    <head>
+<html lang="en">
+    <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{{ app_name }}</title>
 
         <!-- Favicon using app's gradient colors -->
-        <link rel="icon" href="{{ url_for('static', path='/favicon.svg') }}" type="image/svg+xml">
-        <link rel="alternate icon" href="{{ url_for('static', path='/favicon.svg') }}">
+        <link
+            rel="icon"
+            href="{{ url_for('static', path='/favicon.svg') }}"
+            type="image/svg+xml"
+        />
+        <link
+            rel="alternate icon"
+            href="{{ url_for('static', path='/favicon.svg') }}"
+        />
 
         <link
             rel="stylesheet"
             href="{{ url_for('static', path='/css/styles.css') }}"
         />
+        <!-- <link rel="stylesheet" href="../static/css/styles.css" /> -->
         <link
             href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap"
             rel="stylesheet"
         />
+        <link
+            href="https://fonts.googleapis.com/icon?family=Material+Icons"
+            rel="stylesheet"
+        />
     </head>
     <body>
-        <div class="chat-container">
-            <div class="chat-header">
-                <h1>CharMem-LLM</h1>
+        <div class="main-container">
+            <!-- Left side: PDF viewer -->
+            <div class="pdf-section" id="pdf-section">
+                <div class="pdf-header">
+                    <h2>CharMem-LLM</h2>
+                    <div class="pdf-controls">
+                        <button id="prev-page">←</button>
+                        <span id="page-info">Page 1 of 1</span>
+                        <button id="next-page">→</button>
+                        <button id="zoom-out">-</button>
+                        <span id="zoom-level">100%</span>
+                        <button id="zoom-in">+</button>
+                    </div>
+                </div>
+                <div class="pdf-viewer">
+                    <div class="pdf-placeholder" id="pdf-placeholder">
+                        <div class="placeholder-content">
+                            <svg
+                                width="64"
+                                height="64"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path
+                                    d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                                ></path>
+                                <polyline points="7,10 12,15 17,10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            <p>Click here to upload a PDF</p>
+                            <span class="upload-hint"
+                                >Drag & drop or click to browse</span
+                            >
+                        </div>
+                    </div>
+                    <canvas id="pdf-canvas" style="display: none"></canvas>
+                </div>
             </div>
-            <div class="chat-messages" id="chat-messages">
-                <div class="message bot">
-                    <div class="message-content">
-                        <p>
-                            Hello! I'm CharMem powered by {{ model_name }}. How
-                            can I help you today?
-                        </p>
+
+            <!-- Resizable divider -->
+            <div class="divider" id="divider"></div>
+
+            <!-- Right side: Chat interface -->
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h1>CharMem-LLM</h1>
+                </div>
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message bot">
+                        <div class="message-content">
+                            <p>
+                                Hello! I'm CharMem powered by {{ model_name }}.
+                                How can I help you today?
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input">
+                    <textarea
+                        id="user-input"
+                        placeholder="Type your message here..."
+                        rows="2"
+                    ></textarea>
+                    <input
+                        type="file"
+                        id="pdf-upload"
+                        accept=".pdf"
+                        style="display: none"
+                    />
+                    <div class="button-container">
+                        <button id="send-btn">
+                            <i class="material-icons">send</i>
+                        </button>
                     </div>
                 </div>
             </div>
-            <div class="chat-input">
-                <textarea
-                    id="user-input"
-                    placeholder="Type your message here..."
-                    rows="2"
-                ></textarea>
-                <input
-                    type="file"
-                    id="pdf-upload"
-                    accept=".pdf"
-                    style="display: none;"
-                />
-                <button id="upload-btn" type="button">Upload PDF</button>
-                <button id="send-btn">Send</button>
-            </div>
+        </div>
         <!-- <p>Powered by {{ model_name }}</p> -->
 
         <script src="{{ url_for('static', path='/js/chat.js') }}"></script>

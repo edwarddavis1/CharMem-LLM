@@ -58,32 +58,191 @@ body {
     font-family: var(--font-primary);
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
+    margin: 0;
+    padding: 0;
     color: var(--text-primary);
 }
 
-.chat-container {
-    background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(20px);
-    border-radius: 20px;
-    box-shadow: var(--shadow-xl);
+.main-container {
+    display: flex;
+    height: 100vh;
     width: 100%;
-    max-width: 900px;
-    height: 85vh;
+}
+
+/* PDF Section (Left side - 70%) */
+.pdf-section {
+    flex: 0 0 70%;
+    background: var(--gray-100);
+    border-right: none;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    border: 1px solid var(--gray-300);
+    min-width: 200px;
+}
+
+.pdf-header {
+    background: var(--gray-200);
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--gray-300);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pdf-header h2 {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.pdf-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pdf-controls button {
+    background: var(--gray-300);
+    border: 1px solid var(--gray-400);
+    border-radius: 6px;
+    padding: 6px 12px;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-family: var(--font-primary);
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.pdf-controls button:hover {
+    background: var(--gray-400);
+    transform: translateY(-1px);
+}
+
+.pdf-controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.pdf-controls span {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.pdf-viewer {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    background: var(--gray-50);
+    padding: 20px;
+}
+
+.pdf-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px dashed var(--gray-400);
+    border-radius: 12px;
+    margin: 20px;
+    background: var(--gray-50);
+}
+
+.pdf-placeholder:hover {
+    border-color: var(--primary);
+    background: var(--gray-100);
+    transform: translateY(-2px);
+}
+
+.pdf-placeholder:hover .placeholder-content svg {
+    color: var(--primary);
+    transform: scale(1.1);
+}
+
+.pdf-placeholder:hover .placeholder-content p {
+    color: var(--primary);
+}
+
+.placeholder-content {
+    text-align: center;
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+}
+
+.placeholder-content svg {
+    color: var(--gray-400);
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+}
+
+.placeholder-content p {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+}
+
+.upload-hint {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+#pdf-canvas {
+    max-width: 100%;
+    max-height: 100%;
+    box-shadow: var(--shadow-lg);
+    border-radius: 8px;
+}
+
+/* Resizable divider */
+.divider {
+    width: 4px;
+    background: var(--gray-300);
+    cursor: col-resize;
     position: relative;
+    transition: background-color 0.2s ease;
+    flex-shrink: 0;
+}
+
+.divider:hover {
+    background: var(--primary);
+}
+
+.divider::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -2px;
+    right: -2px;
+    bottom: 0;
+    background: transparent;
+}
+
+.chat-container {
+    flex: 1;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(20px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-left: 1px solid var(--gray-300);
+    min-width: 200px;
 }
 
 .chat-header {
     background: var(--gradient-primary);
     color: var(--white);
-    padding: 25px 30px;
+    padding: 20px;
     text-align: center;
     position: relative;
     overflow: hidden;
@@ -247,7 +406,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    min-width: 100px;
+    min-width: 50px;
     justify-content: center;
 }
 
@@ -283,7 +442,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    min-width: 100px;
+    min-width: 50px;
     justify-content: center;
 }
 
@@ -339,64 +498,66 @@ body {
 }
 
 /* Responsive design */
-@media (max-width: 768px) {
-    body {
-        padding: 10px;
+@media (max-width: 1024px) {
+    .main-container {
+        flex-direction: column;
+    }
+
+    .pdf-section {
+        flex: 0 0 60% !important;
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--gray-300);
+    }
+
+    .divider {
+        display: none;
     }
 
     .chat-container {
-        height: 90vh;
-        border-radius: 16px;
-        max-width: 100%;
+        flex: 1;
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid var(--gray-300);
     }
 
-    .chat-header {
-        padding: 20px;
+    .pdf-header {
+        padding: 12px 15px;
     }
 
-    .chat-header h1 {
-        font-size: 1.5rem;
+    .pdf-header h2 {
+        font-size: 1.1rem;
     }
 
-    .chat-messages {
-        padding: 20px;
-        gap: 16px;
+    .pdf-controls {
+        gap: 8px;
     }
 
-    .message {
-        max-width: 85%;
-    }
-
-    .message-content {
-        padding: 14px 18px;
-        font-size: 0.95rem;
-    }
-
-    .chat-input {
-        padding: 20px;
-        gap: 12px;
-    }
-
-    #user-input {
-        padding: 14px 18px;
-        font-size: 0.95rem;
-    }
-
-    #send-btn {
-        padding: 14px 20px;
-        font-size: 0.95rem;
-        min-width: 80px;
+    .pdf-controls button {
+        padding: 4px 8px;
+        font-size: 0.8rem;
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
+    .main-container {
+        flex-direction: column;
+    }
+
+    .pdf-section {
+        flex: 0 0 50% !important;
+    }
+
+    .divider {
+        display: none;
+    }
+
     .chat-container {
-        height: 95vh;
-        border-radius: 12px;
+        flex: 1;
     }
 
     .chat-header {
-        padding: 16px;
+        padding: 15px;
     }
 
     .chat-header h1 {
@@ -404,8 +565,8 @@ body {
     }
 
     .chat-messages {
-        padding: 16px;
-        gap: 14px;
+        padding: 15px;
+        gap: 12px;
     }
 
     .message {
@@ -418,19 +579,110 @@ body {
     }
 
     .chat-input {
-        padding: 16px;
+        padding: 15px;
         gap: 10px;
+        flex-direction: column;
     }
 
     #user-input {
         padding: 12px 16px;
         font-size: 0.9rem;
+        margin-bottom: 0;
+    }
+
+    .button-container {
+        width: 100%;
     }
 
     #send-btn {
-        padding: 12px 18px;
+        padding: 12px 16px;
         font-size: 0.9rem;
-        min-width: 70px;
+        flex: 1;
+    }
+
+    .pdf-header {
+        padding: 10px;
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+
+    .pdf-controls {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .pdf-viewer {
+        padding: 10px;
+    }
+
+    /* Button container for mobile */
+    .button-container {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .pdf-section {
+        flex: 0 0 45% !important;
+    }
+
+    .divider {
+        display: none;
+    }
+
+    .chat-container {
+        flex: 1;
+    }
+
+    .chat-header {
+        padding: 12px;
+    }
+
+    .chat-header h1 {
+        font-size: 1.2rem;
+    }
+
+    .chat-messages {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .message {
+        max-width: 95%;
+    }
+
+    .message-content {
+        padding: 10px 14px;
+        font-size: 0.85rem;
+    }
+
+    .chat-input {
+        padding: 12px;
+        gap: 8px;
+    }
+
+    #user-input {
+        padding: 10px 14px;
+        font-size: 0.85rem;
+    }
+
+    #send-btn {
+        padding: 10px 14px;
+        font-size: 0.85rem;
+        min-width: auto;
+    }
+
+    .pdf-controls button {
+        padding: 3px 6px;
+        font-size: 0.75rem;
+    }
+
+    .pdf-controls span {
+        font-size: 0.8rem;
     }
 }
 

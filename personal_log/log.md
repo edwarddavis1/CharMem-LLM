@@ -308,7 +308,7 @@ The embedding of all of the chunks of the pdf takes time. On the Harry Potter bo
     )
     ```
 
--   New
+    New
 
     ```python
     embedding_function = HuggingFaceEndpointEmbeddings(
@@ -581,3 +581,46 @@ docker run -p 8000:8000 charmem
 -   **Periodically test docker**:
     `docker build -t charmem .`
     `docker run -p 8000:8000 charmem`
+
+# [2025-6-24 Tue]
+
+Spend some time away from this project while I experimented with multimodal models.
+
+(For this project, where I've built a multimodal chatbot, see [here](https://github.com/edwarddavis1/FastAPI_learning/tree/master/chatBotApp))
+
+I decided that, at least for now, this project does not require any multimodal capabilities.
+
+## New UI: PDF reader + Chat
+
+Implemented the main interface layout with a 70/30 split:
+
+**Left side (70%)**: PDF viewer with document controls
+
+-   PDF viewer area with placeholder when no document loaded
+-   Navigation controls (prev/next page, zoom in/out)
+-   Page counter display
+
+**Right side (30%)**: Chat interface
+
+-   Chat header with app title
+-   Scrollable message area with bot/user messages
+-   Input area with upload PDF and send buttons
+
+### Changes
+
+**HTML/CSS**:
+
+-   `.main-container`: Flexbox layout, full viewport height
+-   `.pdf-section`: 70% width, document viewer controls
+-   `.chat-container`: 30% width, full chat interface
+-   **Resizable divider**: Draggable 4px divider between sections
+-   Responsive breakpoints for mobile/tablet layouts
+-   Dark theme styling with gradient accents
+
+**Features**:
+
+-   **Resizable layout**: Users can drag the vertical divider to adjust PDF/chat width ratio (20%-80% range)
+-   **Hover effects**: Divider changes color on hover for better UX
+-   **Mobile optimization**: Divider automatically hidden on mobile devices with vertical layout
+
+The layout automatically adapts to smaller screens with vertical stacking for mobile devices.
