@@ -671,3 +671,23 @@ Now at the point where chunks are only allowed to be picked if they reference in
 -   _Response_: Here’s a summary of what’s happened so far based on the provided excerpts (pages 65–66)...
 
 It appears that only one or two chunks of information are provided as context for this question.
+
+## Evaluating RAG
+
+With the page-aware RAG in place, it's time to work on improving the quality of the RAG pipeline.
+
+To do this, I first need to define a way of measuring performance before I can then update the model and pipeline. Then my focus will be on working out how to improve:
+
+-   The retrieval of relevant chunks, while constrained by page number (while remaining efficient).
+-   The quality of responses - both in terms of accuracy (e.g. page number), and in terms of personality (requires fine-tuning).
+
+Evalutation therefore requires the curation of a dataset to test the accuracy of page references and to fine tune on.
+
+### RAG vs Fine-tuning
+
+**RAG**: Used to focus the model on a specific context, allowing it to generate up-to-date and relevant answers. Helps with hallucination.
+**Fine-tuning**: Specialise a specific model for a certain task or use case and to talk in a certain style / tone. This is now part of the model's weights. After fine-tuning the model will run more efficiently in comparison to solutions involving large prompts.
+
+### Dynamic Character Profile Development
+
+Could I run the LM on each page (e.g. as the user reads) to check if a new character has been introduced?

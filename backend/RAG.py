@@ -86,7 +86,8 @@ class EmbeddedPDF:
         self.db: Chroma | None = None
         self.embedding_function = None
         self._initialize_embedding_function()
-        self.total_pages = 0
+        self._total_pages = 0
+        self._current_page = 0
 
         self.chunk_size = chunk_size
         self.num_return_chunks = num_return_chunks
@@ -98,6 +99,12 @@ class EmbeddedPDF:
             huggingfacehub_api_token=HF_API_TOKEN,
         )
 
+    def set_current_page(self, page: int):
+        self._current_page = page
+
+    def set_total_pages(self, total_pages: int):
+        self._total_pages = total_pages
+
     def embed_pdf(self, pages: list[Document]) -> dict:
         """Embed a list of langchain Document objects into a vector database."""
         try:
@@ -106,7 +113,7 @@ class EmbeddedPDF:
 
             # Embed the chunks to create the vector database
             self.db = Chroma.from_documents(chunks, self.embedding_function)
-            self.total_pages = len(pages)
+            self.set_total_pages(len(pages))
 
             return {
                 "success": True,
@@ -118,18 +125,19 @@ class EmbeddedPDF:
             return {"success": False, "error": str(e)}
 
     def semantic_search(
-        self, character_name: str, k: int = 50, page_limit: int = 0
+        self, character_name: str, k: int = 50, full_book: bool = True
     ) -> str:
         """Search for character-related context in the database."""
 
         if self.db is None:
             raise ValueError("No PDF has been processed yet")
 
-        if page_limit == 0:
-            page_limit = self.total_pages
+        if full_book:
+            page_limit = self._total_pages
         else:
-            page_limit = min(page_limit, self.total_pages)
+            page_limit = self._current_page
 
+        # Search entire book
         results = self.db.similarity_search_with_relevance_scores(character_name, k=k)
 
         # Filter results to only include pages within the page_limit

@@ -20,8 +20,16 @@ pages = loader.load()
 # %%
 pdf_embedder = EmbeddedPDF()
 pdf_embedder.embed_pdf(pages)
+# %% [markdown]
+### Generate character analysis for a specific character
 # %%
 response = pdf_embedder.generate_character_analysis("Hermione Granger")
 print(response)
+# %% [markdown]
+###
 
+# %% [markdown]
+### Check for newly introduced characters on the specified page
 # %%
+response = pdf_embedder.check_new_characters(1)
+print(response)
