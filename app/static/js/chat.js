@@ -19,7 +19,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const prevPageBtn = document.getElementById("prev-page");
     const nextPageBtn = document.getElementById("next-page");
     const pageInfo = document.getElementById("page-info");
-    const pageInput = document.getElementById("page-input");
     const zoomOutBtn = document.getElementById("zoom-out");
     const zoomInBtn = document.getElementById("zoom-in");
     const zoomLevel = document.getElementById("zoom-level");
@@ -132,7 +131,16 @@ document.addEventListener("DOMContentLoaded", () => {
         if (message && isConnected) {
             appendUserMessage(message);
             userInput.value = "";
-            socket.send(message);
+
+            // Sends the message to the backend
+            const messageData = {
+                type: "chat_message",
+                content: message,
+                current_page: currentPage,
+                total_pages: totalPages,
+            };
+
+            socket.send(JSON.stringify(messageData));
             scrollToBottom();
         }
     }
@@ -304,10 +312,6 @@ document.addEventListener("DOMContentLoaded", () => {
         pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
         zoomLevel.textContent = `${Math.round(currentZoom * 100)}%`;
 
-        // Update page input
-        pageInput.value = currentPage;
-        pageInput.max = totalPages;
-
         // Update button states
         prevPageBtn.disabled = currentPage <= 1;
         nextPageBtn.disabled = currentPage >= totalPages;
@@ -345,17 +349,6 @@ document.addEventListener("DOMContentLoaded", () => {
     function zoomOut() {
         currentZoom = Math.max(currentZoom - 0.25, 0.5);
         renderPage(currentPage);
-    }
-
-    /**
-     * Goes to a specific page number
-     * @param {number} pageNum - The page number to navigate to
-     */
-    function goToPage(pageNum) {
-        const page = parseInt(pageNum);
-        if (page >= 1 && page <= totalPages && page !== currentPage) {
-            renderPage(page);
-        }
     }
 
     // ========================================
@@ -447,18 +440,6 @@ document.addEventListener("DOMContentLoaded", () => {
     nextPageBtn.addEventListener("click", goToNextPage);
     zoomInBtn.addEventListener("click", zoomIn);
     zoomOutBtn.addEventListener("click", zoomOut);
-
-    // Page input event listeners
-    pageInput.addEventListener("change", (event) => {
-        goToPage(event.target.value);
-    });
-
-    pageInput.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-            goToPage(event.target.value);
-            event.target.blur(); // Remove focus from input
-        }
-    });
 
     // Focus the input field when page loads
     userInput.focus();

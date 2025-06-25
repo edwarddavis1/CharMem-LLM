@@ -10,7 +10,7 @@ from fastapi import UploadFile
 from langchain_core.documents import Document
 
 from backend.RAG import EmbeddedPDF, chunk_langchain_pages, file_to_langchain_doc
-from tests.test_utils import (
+from tests.testing_setup import (
     MockChroma,
     MockHuggingFaceEmbeddings,
     MockInferenceClient,

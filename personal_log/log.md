@@ -638,3 +638,20 @@ The layout automatically adapts to smaller screens with vertical stacking for mo
 
 -   Added `pdf-controls`, which allows the user to navigate through the PDF and zoom in and out.
 -   `renderPage(pageNum)` js function which is used to display the uploaded PDF at a specified page number - this is selected based on the next or previous pages.
+
+## Using the current page for non-spoiler RAG retrieval
+
+-   Added structured websocket messages to include the current page number along with user messages to the chat.
+
+```javascript
+const messageData = {
+    type: "chat_message",
+    content: message,
+    current_page: currentPage,
+    total_pages: totalPages,
+};
+
+socket.send(JSON.stringify(messageData));
+```
+
+-   This can then be parsed in python, and then this `current_page` number can be used to limit chunk selection to those with a page indicator less than the current page.

@@ -86,6 +86,7 @@ class EmbeddedPDF:
         self.db: Chroma | None = None
         self.embedding_function = None
         self._initialize_embedding_function()
+        self.total_pages = 0
 
         self.chunk_size = chunk_size
         self.num_return_chunks = num_return_chunks
@@ -105,6 +106,7 @@ class EmbeddedPDF:
 
             # Embed the chunks to create the vector database
             self.db = Chroma.from_documents(chunks, self.embedding_function)
+            self.total_pages = len(pages)
 
             return {
                 "success": True,
@@ -115,18 +117,31 @@ class EmbeddedPDF:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-    def semantic_search(self, character_name: str, k: int = 50) -> str:
+    def semantic_search(
+        self, character_name: str, k: int = 50, page_limit: int = 0
+    ) -> str:
         """Search for character-related context in the database."""
 
         if self.db is None:
             raise ValueError("No PDF has been processed yet")
 
+        if page_limit == 0:
+            page_limit = self.total_pages
+        else:
+            page_limit = min(page_limit, self.total_pages)
+
         results = self.db.similarity_search_with_relevance_scores(character_name, k=k)
 
+        # Filter results to only include pages within the page_limit
+        filtered_results = [
+            (page, score)
+            for page, score in results
+            if page.metadata.get("page", 0) < page_limit
+        ]
         retrieval = "\n\n---\n\n".join(
             [
                 f"[Page {page.metadata.get('page', 'N/A')}]\n{page.page_content}"
-                for page, _ in results
+                for page, _ in filtered_results
             ]
         )
 
