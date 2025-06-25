@@ -18,7 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const pdfCanvas = document.getElementById("pdf-canvas");
     const prevPageBtn = document.getElementById("prev-page");
     const nextPageBtn = document.getElementById("next-page");
-    const pageInfo = document.getElementById("page-info");
+    const pageInput = document.getElementById("page-input");
+    const pageTotal = document.getElementById("page-total");
     const zoomOutBtn = document.getElementById("zoom-out");
     const zoomInBtn = document.getElementById("zoom-in");
     const zoomLevel = document.getElementById("zoom-level");
@@ -309,7 +310,9 @@ document.addEventListener("DOMContentLoaded", () => {
      * Updates the page information display
      */
     function updatePageInfo() {
-        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+        pageInput.value = currentPage;
+        pageInput.max = totalPages;
+        pageTotal.textContent = `of ${totalPages}`;
         zoomLevel.textContent = `${Math.round(currentZoom * 100)}%`;
 
         // Update button states
@@ -349,6 +352,19 @@ document.addEventListener("DOMContentLoaded", () => {
     function zoomOut() {
         currentZoom = Math.max(currentZoom - 0.25, 0.5);
         renderPage(currentPage);
+    }
+
+    /**
+     * Jumps to a specific page number
+     */
+    function goToPage(pageNum) {
+        const targetPage = parseInt(pageNum);
+        if (isNaN(targetPage) || targetPage < 1 || targetPage > totalPages) {
+            // Reset input to current page if invalid
+            pageInput.value = currentPage;
+            return;
+        }
+        renderPage(targetPage);
     }
 
     // ========================================
@@ -440,6 +456,30 @@ document.addEventListener("DOMContentLoaded", () => {
     nextPageBtn.addEventListener("click", goToNextPage);
     zoomInBtn.addEventListener("click", zoomIn);
     zoomOutBtn.addEventListener("click", zoomOut);
+
+    // Page input event listeners
+    pageInput.addEventListener("change", (event) => {
+        goToPage(event.target.value);
+    });
+
+    pageInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            goToPage(event.target.value);
+            pageInput.blur(); // Remove focus from input
+        }
+    });
+
+    // Prevent page input from going out of bounds
+    pageInput.addEventListener("input", (event) => {
+        const value = parseInt(event.target.value);
+        if (value > totalPages) {
+            event.target.value = totalPages;
+        } else if (value < 1) {
+            event.target.value = 1;
+        }
+    });
+    pageInput.addEventListener("change", (e) => goToPage(e.target.value));
 
     // Focus the input field when page loads
     userInput.focus();
