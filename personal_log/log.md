@@ -683,14 +683,8 @@ To do this, I first need to define a way of measuring performance before I can t
 
 Evalutation therefore requires the curation of a dataset to test the accuracy of page references and to fine tune on.
 
-### RAG vs Fine-tuning
+### First attempt
 
-**RAG**: Used to focus the model on a specific context, allowing it to generate up-to-date and relevant answers. Helps with hallucination.
-**Fine-tuning**: Specialise a specific model for a certain task or use case and to talk in a certain style / tone. This is now part of the model's weights. After fine-tuning the model will run more efficiently in comparison to solutions involving large prompts.
-
-### Data curation
-
-**First attempt**
 Get a list of major characters and simple search for their names in the PDF. Characters can be referred to by many names so adding like this allows for their detection.
 
 ```python
@@ -712,3 +706,32 @@ As the LLM output does not just return the page number, this will have to be ext
 -   Page numbers between the find-through-search method were one page out of sync with the LLM generation.
 
 _Overall this was a complete failure._
+
+### Second attempt
+
+-   Manually labelled the occurances of the major characters (minus Harry Potter).
+-   Created a specific member function where the LM is prompted to only return a page number of the first mention of the character.
+
+_Note that it is a little ambiguous of what we decide is the correct page. We may hear about a character, or they may even talk - but before their name is mentioned. In this case, which is the correct page number? For simplicity, I've gone with the page number on which their name is first mentioned._
+
+**Second attempt result**
+
+| Character          | Actual_Page | LLM_Page | Correct |
+| ------------------ | ----------- | -------- | ------- |
+| Dudley Dursley     | 6           | 6        | ✓       |
+| Voldemort          | 9           | 13       | ✗       |
+| Petunia Dursley    | 6           | 10       | ✗       |
+| Albus Dumbledore   | 11          | 11       | ✓       |
+| Minerva McGonagall | 12          | 12       | ✓       |
+| Rubeus Hagrid      | 14          | 39       | ✗       |
+| Vernon Dursley     | 6           | 19       | ✗       |
+| Ron Weasley        | 69          | 73       | ✗       |
+| Ginny Weasley      | 69          | 72       | ✗       |
+| Neville Longbottom | 70          | 89       | ✗       |
+| Hermione Granger   | 78          | 78       | ✓       |
+| Draco Malfoy       | 80          | 80       | ✓       |
+| Severus Snape      | 93          | 100      | ✗       |
+
+_Accuracy: 5/13 (38%)_
+
+I have a suspicion that the characters on which the model fails are being introduced with a different name - e.g. "you-know-who" for "voldemort".

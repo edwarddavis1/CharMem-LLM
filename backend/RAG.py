@@ -146,7 +146,7 @@ class EmbeddedPDF:
         ]
         retrieval = "\n\n---\n\n".join(
             [
-                f"[Page {page.metadata.get('page', 'N/A')}]\n{page.page_content}"
+                f"[Page {page.metadata.get('page', 'N/A') + 1}]\n{page.page_content}"
                 for page, _ in filtered_results
             ]
         )
@@ -216,3 +216,49 @@ class EmbeddedPDF:
         )
 
         return response.choices[0].message.content or ""
+
+    def get_character_first_mention(
+        self,
+        character_name: str,
+    ) -> int | None:
+        """Get the page number where a character is first mentioned."""
+        context = self.semantic_search(
+            character_name, k=self.num_return_chunks, full_book=True
+        )
+
+        PROMPT_TEMPLATE = """
+        You are a helpful book assistant. Given the following excerpts from a novel, find the page number where the specified character is first mentioned.
+
+        Context:
+        {context}
+
+        Character: {query}
+
+        Answer with either 'PAGE: <page_number>' if the character is mentioned or 'Not found' if the character is not mentioned.
+        """
+
+        prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
+        prompt = prompt_template.format(context=context, query=character_name)
+
+        response = self.client.chat.completions.create(
+            model=MODEL_ID,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+        )
+
+        # Extract page number from response
+        text = response.choices[0].message.content or ""
+
+        if "PAGE:" in text:
+            try:
+                page_number = int(text.split("PAGE:")[1].strip())
+                return page_number
+            except ValueError:
+                return None
+        elif "Not found" in text:
+            print(f"Character '{character_name}' not found in the provided context.")
+            return None
+        else:
+            # If the response format is unexpected, log it and return None
+            print(f"Unexpected response format: {text}")
+            return None
