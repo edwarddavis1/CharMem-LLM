@@ -308,7 +308,7 @@ The embedding of all of the chunks of the pdf takes time. On the Harry Potter bo
     )
     ```
 
--   New
+    New
 
     ```python
     embedding_function = HuggingFaceEndpointEmbeddings(
@@ -581,3 +581,93 @@ docker run -p 8000:8000 charmem
 -   **Periodically test docker**:
     `docker build -t charmem .`
     `docker run -p 8000:8000 charmem`
+
+# [2025-6-24 Tue]
+
+Spend some time away from this project while I experimented with multimodal models.
+
+(For this project, where I've built a multimodal chatbot, see [here](https://github.com/edwarddavis1/FastAPI_learning/tree/master/chatBotApp))
+
+I decided that, at least for now, this project does not require any multimodal capabilities.
+
+## New UI: PDF reader + Chat
+
+Implemented the main interface layout with a 70/30 split:
+
+**Left side (70%)**: PDF viewer with document controls
+
+-   PDF viewer area with placeholder when no document loaded
+-   Navigation controls (prev/next page, zoom in/out)
+-   Page counter display
+
+**Right side (30%)**: Chat interface
+
+-   Chat header with app title
+-   Scrollable message area with bot/user messages
+-   Input area with upload PDF and send buttons
+
+### Changes
+
+**HTML/CSS**:
+
+-   `.main-container`: Flexbox layout, full viewport height
+-   `.pdf-section`: 70% width, document viewer controls
+-   `.chat-container`: 30% width, full chat interface
+-   **Resizable divider**: Draggable 4px divider between sections
+-   Responsive breakpoints for mobile/tablet layouts
+-   Dark theme styling with gradient accents
+
+**Features**:
+
+-   **Resizable layout**: Users can drag the vertical divider to adjust PDF/chat width ratio (20%-80% range)
+-   **Hover effects**: Divider changes color on hover for better UX
+-   **Mobile optimization**: Divider automatically hidden on mobile devices with vertical layout
+
+The layout automatically adapts to smaller screens with vertical stacking for mobile devices.
+
+# [2025-6-25 Wed]
+
+## PDF Reader Implementation
+
+**Python/FastAPI**:
+
+-   Added a new FastAPI App state, `app.state.current_pdf_path`. This is used to store the path to the PDF for the purpose of serving it back to the frontend for PDF display.
+-   New endpoint, `/serve-pdf`, which uses the FastAPI `FileResponse` function, which asynchronously streams the file back to the frontend based on the `app.state.current_pdf_path` path.
+
+**Frontend**:
+
+-   Added `pdf-controls`, which allows the user to navigate through the PDF and zoom in and out.
+-   `renderPage(pageNum)` js function which is used to display the uploaded PDF at a specified page number - this is selected based on the next or previous pages.
+
+## Using the current page for non-spoiler RAG retrieval
+
+-   Added structured websocket messages to include the current page number along with user messages to the chat.
+
+```javascript
+const messageData = {
+    type: "chat_message",
+    content: message,
+    current_page: currentPage,
+    total_pages: totalPages,
+};
+
+socket.send(JSON.stringify(messageData));
+```
+
+-   This can then be parsed in python, and then this `current_page` number can be used to limit chunk selection to those with a page indicator less than the current page.
+
+## New Issues with page-aware RAG generations
+
+Now at the point where chunks are only allowed to be picked if they reference information on a page that the user has already read.
+
+**Currently implemented**: Embed the entire PDF on input. Run semantic search on entire book. Remove chunks which reference pages over the user position.
+
+-   **Problems caused**: In many cases the vast majority of chunks will be discarded, leaving us with few chunks to work with.
+
+### Example:
+
+-   _Location_: Page 74
+-   _Prompt_: Tell me what's happened so far
+-   _Response_: Here’s a summary of what’s happened so far based on the provided excerpts (pages 65–66)...
+
+It appears that only one or two chunks of information are provided as context for this question.

@@ -10,13 +10,14 @@ from fastapi import (
 )
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from dotenv import load_dotenv
 import logging
 from pathlib import Path
 from huggingface_hub import InferenceClient
 from backend.RAG import EmbeddedPDF, file_to_langchain_doc
 from backend.config import MODEL_ID
+from backend.utils import parse_websocket_message
 
 # Configure logging
 logging.basicConfig(
@@ -121,23 +122,27 @@ async def websocket_endpoint(websocket: WebSocket):
 
         while True:
             data = await websocket.receive_text()
-            user_message = data.strip()
+
+            # Try to parse as structured JSON message
+            message = parse_websocket_message(data)
 
             # If available use the uploaded PDF as context for the user message
             # A semantic search through the PDF will return relevant excerpts
             if app.state.pdf_embedder is not None:
-                retrieval = app.state.pdf_embedder.semantic_search(user_message)
+                retrieval = app.state.pdf_embedder.semantic_search(
+                    message["content"], page_limit=message["current_page"]
+                )
 
                 app.state.conversation_history.append(
                     {
                         "role": "system",
-                        "content": f"The following information may or may not be relevant to the following user query. If you think that this information is relevant, reference it and give page numbers: {retrieval}",
+                        "content": f"You are a helpful book assistant and the user is currently on page {message['current_page']} of the book. Given the following excerpts from a novel, provide the user information about a specified character or plot point as clearly and concisely as possible, using only the provided text. The following information may or may not be relevant to the following user query. If you think that this information is relevant, reference it and give page numbers. Never provide information outside of the provided context. If there is not enough evidence that we have met this character, you must say that we have not met the character. Context: {retrieval}",
                     }
                 )
 
             # Add user message to conversation history (using ChatML formatting)
             app.state.conversation_history.append(
-                {"role": "user", "content": user_message}
+                {"role": "user", "content": message["content"]}
             )
 
             await manager.send_message("Bot is thinking...", websocket)
@@ -170,11 +175,36 @@ async def websocket_endpoint(websocket: WebSocket):
         manager.disconnect(websocket)
 
 
+@app.get("/pdf/{filename}")
+async def serve_pdf(filename: str):
+    """Serve the uploaded PDF file."""
+    upload_dir = Path("uploads")
+    pdf_path = upload_dir / filename
+    app.state.current_pdf_path = pdf_path
+
+    if not pdf_path.exists():
+        raise HTTPException(status_code=404, detail="PDF file not found")
+
+    return FileResponse(pdf_path, media_type="application/pdf", filename=filename)
+
+
 @app.post("/upload-pdf")
 async def upload_pdf(pdf: UploadFile = File(...)):
     # Validate file type
     if not pdf.filename or not pdf.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are allowed")
+
+    # Save the PDF file for serving
+    upload_dir = Path("uploads")
+    upload_dir.mkdir(exist_ok=True)
+    pdf_path = upload_dir / pdf.filename
+
+    with open(pdf_path, "wb") as buffer:
+        content = await pdf.read()
+        buffer.write(content)
+
+    # Reset file pointer for processing
+    await pdf.seek(0)
 
     pages = await file_to_langchain_doc(pdf)
 
@@ -185,6 +215,8 @@ async def upload_pdf(pdf: UploadFile = File(...)):
         return {
             "message": result["message"],
             "pages": result["pages"],
+            "pdf_url": f"/pdf/{pdf.filename}",  # Add PDF URL
+            "filename": pdf.filename,
         }
     else:
         raise HTTPException(
