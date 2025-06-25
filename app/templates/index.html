@@ -29,6 +29,8 @@
             href="https://fonts.googleapis.com/icon?family=Material+Icons"
             rel="stylesheet"
         />
+        <!-- PDF.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     </head>
     <body>
         <div class="main-container">
@@ -40,6 +42,16 @@
                         <button id="prev-page">←</button>
                         <span id="page-info">Page 1 of 1</span>
                         <button id="next-page">→</button>
+                        <span class="page-input-container">
+                            Go to:
+                            <input
+                                type="number"
+                                id="page-input"
+                                min="1"
+                                max="1"
+                                value="1"
+                            />
+                        </span>
                         <button id="zoom-out">-</button>
                         <span id="zoom-level">100%</span>
                         <button id="zoom-in">+</button>

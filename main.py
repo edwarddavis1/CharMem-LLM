@@ -1,4 +1,5 @@
 import os
+import tempfile
 from fastapi import (
     FastAPI,
     Request,
@@ -10,7 +11,7 @@ from fastapi import (
 )
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from dotenv import load_dotenv
 import logging
 from pathlib import Path
@@ -39,6 +40,7 @@ else:
 app = FastAPI(title="ChatBot App with Hugging Face LLM")
 
 app.state.pdf_embedder = None
+app.state.current_pdf_path = None  # Store path to current PDF file
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=Path("app/static")), name="static")
@@ -176,20 +178,59 @@ async def upload_pdf(pdf: UploadFile = File(...)):
     if not pdf.filename or not pdf.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are allowed")
 
-    pages = await file_to_langchain_doc(pdf)
+    try:
+        # Save PDF to temporary location for serving
+        temp_dir = tempfile.gettempdir()
+        pdf_path = os.path.join(temp_dir, f"charmem_{pdf.filename}")
 
-    app.state.pdf_embedder = EmbeddedPDF()
-    result = app.state.pdf_embedder.embed_pdf(pages)
+        pdf_content = await pdf.read()
 
-    if result["success"]:
-        return {
-            "message": result["message"],
-            "pages": result["pages"],
-        }
-    else:
-        raise HTTPException(
-            status_code=500, detail=f"Error processing PDF: {result['error']}"
-        )
+        # Save to temporary file
+        with open(pdf_path, "wb") as f:
+            f.write(pdf_content)
+
+        # Store the path for serving
+        app.state.current_pdf_path = pdf_path
+        pdf.file.seek(0)
+
+        # Embed the PDF
+        pages = await file_to_langchain_doc(pdf)
+        app.state.pdf_embedder = EmbeddedPDF()
+        result = app.state.pdf_embedder.embed_pdf(pages)
+
+        if result["success"]:
+            return {
+                "message": result["message"],
+                "pages": result["pages"],
+                "pdf_url": "/serve-pdf",  # URL to serve the PDF
+            }
+        else:
+            # Clean up file if embedding failed
+            if os.path.exists(pdf_path):
+                os.remove(pdf_path)
+            app.state.current_pdf_path = None
+            raise HTTPException(
+                status_code=500, detail=f"Error processing PDF: {result['error']}"
+            )
+    except Exception as e:
+        # Clean up on any error
+        if app.state.current_pdf_path and os.path.exists(app.state.current_pdf_path):
+            os.remove(app.state.current_pdf_path)
+        app.state.current_pdf_path = None
+        raise HTTPException(status_code=500, detail=f"Error uploading PDF: {str(e)}")
+
+
+@app.get("/serve-pdf")
+async def serve_pdf():
+    """Serve the currently uploaded PDF file."""
+    if not app.state.current_pdf_path or not os.path.exists(app.state.current_pdf_path):
+        raise HTTPException(status_code=404, detail="No PDF file found")
+
+    return FileResponse(
+        app.state.current_pdf_path,
+        media_type="application/pdf",
+        filename="document.pdf",
+    )
 
 
 @app.post("/query-character")

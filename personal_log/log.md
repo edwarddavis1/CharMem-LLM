@@ -624,3 +624,17 @@ Implemented the main interface layout with a 70/30 split:
 -   **Mobile optimization**: Divider automatically hidden on mobile devices with vertical layout
 
 The layout automatically adapts to smaller screens with vertical stacking for mobile devices.
+
+# [2025-6-25 Wed]
+
+## PDF Reader Implementation
+
+**Python/FastAPI**:
+
+-   Added a new FastAPI App state, `app.state.current_pdf_path`. This is used to store the path to the PDF for the purpose of serving it back to the frontend for PDF display.
+-   New endpoint, `/serve-pdf`, which uses the FastAPI `FileResponse` function, which asynchronously streams the file back to the frontend based on the `app.state.current_pdf_path` path.
+
+**Frontend**:
+
+-   Added `pdf-controls`, which allows the user to navigate through the PDF and zoom in and out.
+-   `renderPage(pageNum)` js function which is used to display the uploaded PDF at a specified page number - this is selected based on the next or previous pages.

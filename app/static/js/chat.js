@@ -15,6 +15,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const divider = document.getElementById("divider");
     const pdfSection = document.getElementById("pdf-section");
     const mainContainer = document.querySelector(".main-container");
+    const pdfCanvas = document.getElementById("pdf-canvas");
+    const prevPageBtn = document.getElementById("prev-page");
+    const nextPageBtn = document.getElementById("next-page");
+    const pageInfo = document.getElementById("page-info");
+    const pageInput = document.getElementById("page-input");
+    const zoomOutBtn = document.getElementById("zoom-out");
+    const zoomInBtn = document.getElementById("zoom-in");
+    const zoomLevel = document.getElementById("zoom-level");
 
     // ========================================
     // RESIZABLE DIVIDER FUNCTIONALITY
@@ -54,6 +62,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // ========================================
     let socket = null;
     let isConnected = false;
+
+    // PDF display state
+    let currentPdf = null;
+    let currentPage = 1;
+    let totalPages = 0;
+    let currentZoom = 1.0;
 
     // ========================================
     // WEBSOCKET FUNCTIONS
@@ -219,6 +233,132 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ========================================
+    // PDF DISPLAY FUNCTIONS
+    // ========================================
+
+    /**
+     * Loads and displays a PDF from the given URL
+     * @param {string} pdfUrl - URL to the PDF file
+     */
+    async function loadPDF(pdfUrl) {
+        try {
+            // Configure PDF.js worker
+            pdfjsLib.GlobalWorkerOptions.workerSrc =
+                "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+            // Load the PDF
+            const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
+            currentPdf = pdf;
+            totalPages = pdf.numPages;
+            currentPage = 1;
+
+            // Update page info
+            updatePageInfo();
+
+            // Show the PDF canvas and hide placeholder
+            pdfCanvas.style.display = "block";
+            pdfPlaceholder.style.display = "none";
+
+            // Render the first page
+            await renderPage(currentPage);
+        } catch (error) {
+            console.error("Error loading PDF:", error);
+            appendBotMessage(`Error loading PDF: ${error.message}`);
+        }
+    }
+
+    /**
+     * Renders a specific page of the PDF
+     * @param {number} pageNum - Page number to render
+     */
+    async function renderPage(pageNum) {
+        if (!currentPdf || pageNum < 1 || pageNum > totalPages) return;
+
+        try {
+            const page = await currentPdf.getPage(pageNum);
+            const viewport = page.getViewport({ scale: currentZoom });
+
+            // Set canvas dimensions
+            const context = pdfCanvas.getContext("2d");
+            pdfCanvas.height = viewport.height;
+            pdfCanvas.width = viewport.width;
+
+            // Render the page
+            const renderContext = {
+                canvasContext: context,
+                viewport: viewport,
+            };
+
+            await page.render(renderContext).promise;
+            currentPage = pageNum;
+            updatePageInfo();
+        } catch (error) {
+            console.error("Error rendering page:", error);
+        }
+    }
+
+    /**
+     * Updates the page information display
+     */
+    function updatePageInfo() {
+        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+        zoomLevel.textContent = `${Math.round(currentZoom * 100)}%`;
+
+        // Update page input
+        pageInput.value = currentPage;
+        pageInput.max = totalPages;
+
+        // Update button states
+        prevPageBtn.disabled = currentPage <= 1;
+        nextPageBtn.disabled = currentPage >= totalPages;
+    }
+
+    /**
+     * Goes to the previous page
+     */
+    function goToPreviousPage() {
+        if (currentPage > 1) {
+            renderPage(currentPage - 1);
+        }
+    }
+
+    /**
+     * Goes to the next page
+     */
+    function goToNextPage() {
+        if (currentPage < totalPages) {
+            renderPage(currentPage + 1);
+        }
+    }
+
+    /**
+     * Zooms in the PDF
+     */
+    function zoomIn() {
+        currentZoom = Math.min(currentZoom + 0.25, 3.0);
+        renderPage(currentPage);
+    }
+
+    /**
+     * Zooms out the PDF
+     */
+    function zoomOut() {
+        currentZoom = Math.max(currentZoom - 0.25, 0.5);
+        renderPage(currentPage);
+    }
+
+    /**
+     * Goes to a specific page number
+     * @param {number} pageNum - The page number to navigate to
+     */
+    function goToPage(pageNum) {
+        const page = parseInt(pageNum);
+        if (page >= 1 && page <= totalPages && page !== currentPage) {
+            renderPage(page);
+        }
+    }
+
+    // ========================================
     // PDF UPLOAD FUNCTIONS
     // ========================================
 
@@ -245,6 +385,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 appendBotMessage(
                     `PDF "${file.name}" uploaded successfully! The document contains ${result.pages} pages.`
                 );
+
+                // Load and display the PDF
+                if (result.pdf_url) {
+                    await loadPDF(result.pdf_url);
+                }
             } else {
                 appendBotMessage(
                     `Error uploading PDF: ${
@@ -294,6 +439,24 @@ document.addEventListener("DOMContentLoaded", () => {
         if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault();
             sendMessage();
+        }
+    });
+
+    // PDF control event listeners
+    prevPageBtn.addEventListener("click", goToPreviousPage);
+    nextPageBtn.addEventListener("click", goToNextPage);
+    zoomInBtn.addEventListener("click", zoomIn);
+    zoomOutBtn.addEventListener("click", zoomOut);
+
+    // Page input event listeners
+    pageInput.addEventListener("change", (event) => {
+        goToPage(event.target.value);
+    });
+
+    pageInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            goToPage(event.target.value);
+            event.target.blur(); // Remove focus from input
         }
     });
 
