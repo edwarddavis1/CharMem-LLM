@@ -655,3 +655,19 @@ socket.send(JSON.stringify(messageData));
 ```
 
 -   This can then be parsed in python, and then this `current_page` number can be used to limit chunk selection to those with a page indicator less than the current page.
+
+## New Issues with page-aware RAG generations
+
+Now at the point where chunks are only allowed to be picked if they reference information on a page that the user has already read.
+
+**Currently implemented**: Embed the entire PDF on input. Run semantic search on entire book. Remove chunks which reference pages over the user position.
+
+-   **Problems caused**: In many cases the vast majority of chunks will be discarded, leaving us with few chunks to work with.
+
+### Example:
+
+-   _Location_: Page 74
+-   _Prompt_: Tell me what's happened so far
+-   _Response_: Here’s a summary of what’s happened so far based on the provided excerpts (pages 65–66)...
+
+It appears that only one or two chunks of information are provided as context for this question.
