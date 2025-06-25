@@ -581,7 +581,7 @@ body {
     .chat-input {
         padding: 15px;
         gap: 10px;
-        flex-direction: column;
+        align-items: flex-end;
     }
 
     #user-input {
@@ -591,13 +591,13 @@ body {
     }
 
     .button-container {
-        width: 100%;
+        display: flex;
     }
 
     #send-btn {
         padding: 12px 16px;
         font-size: 0.9rem;
-        flex: 1;
+        min-width: 50px;
     }
 
     .pdf-header {
@@ -615,13 +615,6 @@ body {
 
     .pdf-viewer {
         padding: 10px;
-    }
-
-    /* Button container for mobile */
-    .button-container {
-        display: flex;
-        gap: 10px;
-        width: 100%;
     }
 }
 
@@ -663,6 +656,7 @@ body {
     .chat-input {
         padding: 12px;
         gap: 8px;
+        align-items: flex-end;
     }
 
     #user-input {
@@ -730,14 +724,4 @@ body {
 #send-btn.loading:hover {
     transform: none;
     box-shadow: var(--shadow-md);
-}
-
-.chat-input {
-    display: flex;
-    gap: 10px;
-    align-items: flex-end;
-}
-
-#user-input {
-    flex: 1;
 }
