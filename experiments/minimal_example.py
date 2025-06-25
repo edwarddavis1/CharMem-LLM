@@ -23,10 +23,22 @@ pdf_embedder.embed_pdf(pages)
 # %% [markdown]
 ### Generate character analysis for a specific character
 # %%
-response = pdf_embedder.generate_character_analysis("Hermione Granger")
+response = pdf_embedder.generate_character_analysis("Hermione Granger", full_book=True)
 print(response)
 # %% [markdown]
-###
+### Perform a semantic search for character-related context (up to current page)
+# %%
+# Before we meet Hermione
+pdf_embedder.set_current_page(75)
+response = pdf_embedder.generate_character_analysis("Hermione Granger", full_book=False)
+print(response)
+
+# %%
+# After we meet Hermione
+pdf_embedder.set_current_page(100)
+response = pdf_embedder.generate_character_analysis("Hermione Granger", full_book=False)
+print(response)
+
 
 # %% [markdown]
 ### Check for newly introduced characters on the specified page

@@ -125,7 +125,7 @@ class EmbeddedPDF:
             return {"success": False, "error": str(e)}
 
     def semantic_search(
-        self, character_name: str, k: int = 50, full_book: bool = True
+        self, character_name: str, k: int = 50, full_book: bool = False
     ) -> str:
         """Search for character-related context in the database."""
 
@@ -155,9 +155,13 @@ class EmbeddedPDF:
 
         return retrieval
 
-    def generate_character_analysis(self, character_name: str) -> str:
+    def generate_character_analysis(
+        self, character_name: str, full_book: bool = False
+    ) -> str:
         """Generate character analysis using the LLM."""
-        context = self.semantic_search(character_name, k=self.num_return_chunks)
+        context = self.semantic_search(
+            character_name, k=self.num_return_chunks, full_book=full_book
+        )
 
         PROMPT_TEMPLATE = """
         You are a helpful book assistant. Given the following excerpts from a novel, provide the user information about a specified character as clearly and concisely as possible, using only the provided text.
@@ -167,7 +171,9 @@ class EmbeddedPDF:
         2. Where we first met the character (including the page number and how they were introduced)
         3. Some recent events involving the character (recent, i.e. higher page numbers).
 
-        If there is not enough evidence that we have met this character, you must say that we have not met the character.
+        Remember to keep your answer as concise as possible and relevant to the provided context.
+
+        If there is not enough evidence that we have met this character, you must say "We have not met this character" only - do not say anything else other than this exact statement.
 
         Context:
         {context}

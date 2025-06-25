@@ -230,6 +230,7 @@ class TestEmbeddedPDF:
 
         pdf_embedder = EmbeddedPDF()
         pdf_embedder.embed_pdf(sample_documents)
+        pdf_embedder.set_current_page(pdf_embedder._total_pages - 1)  # Set to last page
 
         result = pdf_embedder.semantic_search("Harry Potter")
 
