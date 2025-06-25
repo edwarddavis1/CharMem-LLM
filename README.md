@@ -2,12 +2,12 @@
 
 > Lost the plot? Use CharMem!
 
-CharMem is an intelligent chat application that helps readers keep track of characters in books and novels. Using retireval augmented generation (RAG), it provides instant character summaries, first meeting details, and recent events with precise page references.
+CharMem is an intelligent chat application that helps readers keep track of characters in books and novels. Using retrieval augmented generation (RAG) with anti-spoiler technology, it provides instant character summaries, first meeting details, and recent events with precise page references - all while ensuring you never see information from pages you haven't read yet.
 
 ## 🌟 Key Features
 
 -   **📄 PDF Upload & Processing**: Upload any PDF book for instant character analysis
--   **🔍 Smart Character Search**: Ask about any character and get comprehensive summaries
+-   **🔍 Anti-spoiler Conversations**: Ask about plot points, characters or summaries - without spoilers!
 -   **🤖 AI-Powered Responses**: Powered by Qwen-235B model via Hugging Face Inference API
 -   **💬 Real-time Chat Interface**: WebSocket-based chat with typing indicators
 -   **📍 Page References**: Get exact page numbers for character introductions and events
@@ -15,9 +15,15 @@ CharMem is an intelligent chat application that helps readers keep track of char
 
 ## 🎬 Demo
 
-![CharMem Demo](demo/CharMem_demo.gif)
+<!-- ![CharMem Demo](demo/CharMem_demo.gif) -->
 
-_See CharMem in action: Upload a PDF, ask about characters, and get instant insights with page references!_
+<!-- _See CharMem in action: Upload a PDF, ask about characters, and get instant insights with page references!_ -->
+
+![CharMem Split View](demo/CharMem_split_view.png)
+_CharMem answers questions about book based on where you're up to in the book - including the page numbers for reference!_
+
+![CharMem Anti-spoiler](demo/CharMem_anti_spoiler_demo.png)
+_CharMem will never reveal spoilers that you haven't read yet!_
 
 ## 🚀 Quick Start
 
@@ -94,13 +100,6 @@ _See CharMem in action: Upload a PDF, ask about characters, and get instant insi
 3. **Open your browser**
    Navigate to `http://localhost:8000`
 
-## 💡 How It Works
-
-1. **Upload a PDF**: Click "Upload PDF" to process your book
-2. **Ask about characters**: Type character names in the chat
-3. **Get instant insights**: Receive character summaries, first meetings, and recent events
-4. **Continue reading**: All responses include page references to help you navigate
-
 ## 🔧 Minimal Code Example
 
 Here's how to use CharMem programmatically:
@@ -130,57 +129,37 @@ print(response)
 -   **Vector Embeddings**: sentence-transformers/all-MiniLM-L6-v2
 -   **Language Model**: Qwen-235B-A22B
 
-## 📝 Example Output
-
-```
-You: Who is Hermione Granger?
-
-CharMem: Hermione Granger is an exceptionally intelligent and bookish student at Hogwarts,
-known for her dedication to academic excellence and strict adherence to rules.
-Initially portrayed as overbearing and socially awkward, she is eager to prove her
-worth and often corrects others’ mistakes. Her character evolves from a rule-
-follower to someone willing to bend regulations for the greater good, balancing
-her thirst for knowledge with growing camaraderie.
-
-Hermione is first introduced on **Page 77** during the train ride to Hogwarts. She
-enters Harry and Ron’s compartment, introducing herself as a Muggle-born witch who
-has memorized all their textbooks and is eager to learn magic.
-
-In later chapters (e.g., **Page 182, 194, 216–221**), Hermione plays critical
-roles in key plot points:
-- She accompanies Harry and Ron into the Forbidden Forest to investigate unicorn
-deaths, interacting nervously with centaurs like Ronan.
-- She helps Harry confront Snape and protect the Philosopher’s Stone, calming him
-with a hug before he faces danger and later explaining Dumbledore’s reasoning for
-allowing Harry to proceed.
-- During a confrontation in the dungeon chambers, she solves the potion riddle,
-choosing to stay behind to ensure Harry’s safe passage.
-- At the end-of-year feast (**Page 219**), Dumbledore awards her 50 points for
-“cool logic in the face of fire,” recognizing her pivotal role in saving the Stone.
-- On the final pages (**221**), she expresses concern for Harry’s well-being
-during summer break, highlighting her growth into a supportive, empathetic friend.
-Her academic prowess is underscored when she finishes top of the year
-(**Page 220**), cementing her as both a scholar and a hero.
-```
-
 ## 🏗️ Project Structure
 
 ```
 CharMem/
 ├── app/
-│   ├── static/          # CSS and JavaScript files
-│   └── templates/       # HTML templates
+│   ├── static/
+│   │   ├── css/
+│   │   │   └── styles.css         # Main stylesheet with dark theme
+│   │   └── js/
+│   │       └── chat.js            # WebSocket chat and PDF viewer logic
+│   └── templates/
+│       └── index.html             # Main HTML template
 ├── backend/
-│   ├── RAG.py          # RAG implementation and PDF processing
-│   └── config.py       # Model configuration
-├── experiments/        # Development and testing scripts
-├── main.py            # FastAPI application
-├── run.py             # Application runner
-└── pyproject.toml     # Dependencies and project config
+│   ├── RAG.py                     # RAG implementation and PDF processing
+│   └── config.py                  # Model configuration
+├── experiments/
+│   └── minimal_example.py         # Development and testing scripts
+├── personal_log/
+│   ├── log.md                     # Development log and progress notes
+├── demo/                          # Demo images and assets
+├── main.py                        # FastAPI application
+├── run.py                         # Application runner
+├── pyproject.toml                 # Dependencies and project config
+└── README.md                      # Project documentation
 ```
 
 ## 🔮 Features Coming Soon...
 
--   **Reading Progress Tracking**: Track your current page to avoid spoilers
--   **Enhanced Search**: Plot summaries and thematic analysis
 -   **In-Character Responses**: Chat with characters as if they were real
+-   **Advanced Character Profiles**: Detailed character cards with relationships, motivations, and development arcs
+-   **Multi-Book Library**: Manage multiple books with cross-references and series continuity
+-   **Character Relationship Maps**: Visual network graphs showing character connections and locations
+-   **Character Avatars**: AI-generated character portraits based on descriptions
+-   **Audio Book Integration**: Sync with audiobook progress and timestamps

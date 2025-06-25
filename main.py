@@ -109,7 +109,7 @@ async def query_huggingface(conversation_history):
 async def get_root(request: Request):
     return templates.TemplateResponse(
         "index.html",
-        {"request": request, "app_name": "CharMem", "model_name": MODEL_ID},
+        {"request": request, "app_name": "CharMem AI", "model_name": MODEL_ID},
     )
 
 
@@ -129,8 +129,12 @@ async def websocket_endpoint(websocket: WebSocket):
             # If available use the uploaded PDF as context for the user message
             # A semantic search through the PDF will return relevant excerpts
             if app.state.pdf_embedder is not None:
+                # Note what page the user is currently on
+                app.state.pdf_embedder.set_current_page(message.get("current_page", 0))
+
+                # Perform semantic search to get relevant context based on page number
                 retrieval = app.state.pdf_embedder.semantic_search(
-                    message["content"], page_limit=message["current_page"]
+                    message["content"], full_book=False
                 )
 
                 app.state.conversation_history.append(
