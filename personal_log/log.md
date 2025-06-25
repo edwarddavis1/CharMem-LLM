@@ -688,6 +688,27 @@ Evalutation therefore requires the curation of a dataset to test the accuracy of
 **RAG**: Used to focus the model on a specific context, allowing it to generate up-to-date and relevant answers. Helps with hallucination.
 **Fine-tuning**: Specialise a specific model for a certain task or use case and to talk in a certain style / tone. This is now part of the model's weights. After fine-tuning the model will run more efficiently in comparison to solutions involving large prompts.
 
-### Dynamic Character Profile Development
+### Data curation
 
-Could I run the LM on each page (e.g. as the user reads) to check if a new character has been introduced?
+**First attempt**
+Get a list of major characters and simple search for their names in the PDF. Characters can be referred to by many names so adding like this allows for their detection.
+
+```python
+"Hermione Granger": [
+    "Hermione Granger",
+    "Hermione",
+    "Granger",
+    "Miss Granger",
+    "Ms. Granger",
+],
+```
+
+As the LLM output does not just return the page number, this will have to be extracted from the response using regex.
+
+**Issues**
+
+-   Searching for first occurances of the character is not a good strategy - the LLM was correct more often than this method, making it useless.
+-   Page extraction from the LLM output is unreliable.
+-   Page numbers between the find-through-search method were one page out of sync with the LLM generation.
+
+_Overall this was a complete failure._

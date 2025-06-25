@@ -13,6 +13,7 @@ dependencies = [
     "langchain-community>=0.3.24",
     "langchain-huggingface>=0.2.0",
     "langchain-openai>=0.3.18",
+    "pandas>=2.3.0",
     "pypdf>=5.5.0",
     "pypdf2>=3.0.1",
     "python-multipart>=0.0.20",

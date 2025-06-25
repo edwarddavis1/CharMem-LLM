@@ -39,9 +39,8 @@ pdf_embedder.set_current_page(100)
 response = pdf_embedder.generate_character_analysis("Hermione Granger", full_book=False)
 print(response)
 
-
 # %% [markdown]
 ### Check for newly introduced characters on the specified page
 # %%
-response = pdf_embedder.check_new_characters(1)
+response = pdf_embedder.check_page_for_characters(pages[77].page_content)
 print(response)

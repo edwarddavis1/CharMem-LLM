@@ -85,15 +85,13 @@ class EmbeddedPDF:
     ):
         self.db: Chroma | None = None
         self.embedding_function = None
-        self._initialize_embedding_function()
         self._total_pages = 0
         self._current_page = 0
 
         self.chunk_size = chunk_size
         self.num_return_chunks = num_return_chunks
 
-    def _initialize_embedding_function(self):
-        """Initialize the embedding function."""
+        self.client = InferenceClient(api_key=HF_API_TOKEN)
         self.embedding_function = HuggingFaceEndpointEmbeddings(
             model=EMBEDDING_MODEL_ID,
             huggingfacehub_api_token=HF_API_TOKEN,
@@ -185,8 +183,7 @@ class EmbeddedPDF:
         prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
         prompt = prompt_template.format(context=context, query=character_name)
 
-        client = InferenceClient(api_key=HF_API_TOKEN)
-        response = client.chat.completions.create(
+        response = self.client.chat.completions.create(
             model=MODEL_ID,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
@@ -197,3 +194,25 @@ class EmbeddedPDF:
     def has_documents(self) -> bool:
         """Check if the database has any documents."""
         return self.db is not None
+
+    def check_page_for_characters(self, page: str) -> str:
+        """Check for newly introduced characters on the current page."""
+        if self.db is None:
+            raise ValueError("No PDF has been processed yet")
+
+        PROMPT_TEMPLATE = """
+        You are a helpful book assistant. Given the following page from a novel, check if any new characters are introduced on this page. If there are new characters, provide their names only - do not produce any text other than the character names, separated by commas.
+
+        Page: {pdf_page}
+        """
+
+        prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
+        prompt = prompt_template.format(pdf_page=page)
+
+        response = self.client.chat.completions.create(
+            model=MODEL_ID,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+        )
+
+        return response.choices[0].message.content or ""
