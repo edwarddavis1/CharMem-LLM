@@ -735,3 +735,8 @@ _Note that it is a little ambiguous of what we decide is the correct page. We ma
 _Accuracy: 5/13 (38%)_
 
 I have a suspicion that the characters on which the model fails are being introduced with a different name - e.g. "you-know-who" for "voldemort".
+
+**Next steps**:
+
+-   Deploy the project properly. Look at using GitHub pages and railway, as these are easy and free.
+-   Once deployed, turn the attention to improving the RAG performance.
