@@ -10,7 +10,7 @@ The idea: utilise semantic search to provide a character summary about specific 
 
 ### High Level
 
-High-level idea: when queried, the LLM retreives some relevant content before answering.
+High-level idea: when queried, the LLM retrieves some relevant content before answering.
 Here, "relevant content" could mean looking up on the internet, or looking through a pre-determined database. In the case of this project, that will be locating information in the pdf regarding the queried character.
 
 #### Benefits of RAG
